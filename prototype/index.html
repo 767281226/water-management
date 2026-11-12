@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>宏禹水利管理软件 · 演示原型</title>
+<style>
+:root{
+  --primary:#2a78d6; --primary-d:#1c5cab; --primary-l:#e8f1fc;
+  --nav:#0f2a4a; --nav-2:#163a63; --nav-text:#b9c8db;
+  --bg:#f3f5f8; --surface:#ffffff; --line:#e3e7ee; --line-2:#eef1f5;
+  --text:#1b2430; --text-2:#5a6577; --text-3:#8a94a6;
+  --good:#1a8f4d; --good-l:#e5f5ec; --warn:#b77400; --warn-l:#fdf3e1;
+  --bad:#d64545; --bad-l:#fdecec; --grey-l:#f0f2f5;
+  --radius:10px; --shadow:0 1px 2px rgba(16,30,54,.06),0 2px 8px rgba(16,30,54,.05);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;font-size:14px;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--primary);text-decoration:none;cursor:pointer}
+.hidden{display:none!important}
+svg.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+/* ---------- login ---------- */
+.login{min-height:100%;display:flex;align-items:center;justify-content:center;padding:24px;
+  background:linear-gradient(135deg,#0f2a4a 0%,#1c5cab 60%,#2a78d6 100%);position:relative;overflow:hidden}
+.login:before,.login:after{content:"";position:absolute;border-radius:50%;background:rgba(255,255,255,.05)}
+.login:before{width:620px;height:620px;left:-200px;bottom:-280px}
+.login:after{width:420px;height:420px;right:-120px;top:-160px}
+.login-card{position:relative;z-index:1;width:100%;max-width:400px;background:#fff;border-radius:16px;padding:36px 32px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.login-brand{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.logo{width:42px;height:42px;border-radius:10px;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff}
+.logo svg{width:24px;height:24px;fill:#fff;stroke:none}
+.login-brand h1{font-size:20px}
+.login-sub{color:var(--text-3);font-size:13px;margin-bottom:26px}
+.demo-acc{margin-top:22px;border-top:1px dashed var(--line);padding-top:16px}
+.demo-acc p{font-size:12px;color:var(--text-3);margin-bottom:10px}
+.demo-acc .chips{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.demo-acc button{border:1px solid var(--line);background:#f8fafc;border-radius:8px;padding:8px 10px;text-align:left;cursor:pointer}
+.demo-acc button:hover{border-color:var(--primary);background:var(--primary-l)}
+.demo-acc b{display:block;font-size:13px}.demo-acc small{color:var(--text-3);font-size:12px}
+
+/* ---------- layout ---------- */
+.app{display:flex;min-height:100%}
+.sidebar{width:220px;background:var(--nav);color:var(--nav-text);position:fixed;inset:0 auto 0 0;display:flex;flex-direction:column;z-index:30;transition:transform .2s}
+.brand{display:flex;align-items:center;gap:10px;padding:18px 18px 16px;color:#fff;border-bottom:1px solid rgba(255,255,255,.06)}
+.brand .logo{width:34px;height:34px;border-radius:8px}
+.brand b{font-size:15px;display:block}.brand small{font-size:11px;color:var(--nav-text)}
+#nav{flex:1;overflow:auto;padding:10px 10px 20px}
+.nav-group{font-size:12px;color:#7189a8;padding:14px 10px 6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;color:var(--nav-text);margin-bottom:2px}
+.nav-item:hover{background:var(--nav-2);color:#fff}
+.nav-item.active{background:var(--primary);color:#fff}
+.nav-item .badge{margin-left:auto}
+.main-wrap{flex:1;margin-left:220px;min-width:0;display:flex;flex-direction:column}
+.topbar{height:56px;background:var(--surface);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;padding:0 20px;position:sticky;top:0;z-index:20}
+.topbar h2{font-size:16px;font-weight:600}
+.top-right{margin-left:auto;display:flex;align-items:center;gap:14px}
+.role-switch{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-3)}
+.role-switch select{border:1px solid var(--line);border-radius:6px;padding:4px 6px;background:#fff;font-size:12px}
+.icon-btn{border:none;background:none;cursor:pointer;width:34px;height:34px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;color:var(--text-2);position:relative}
+.icon-btn:hover{background:var(--grey-l)}
+.icon-btn .dot{position:absolute;top:4px;right:3px;min-width:16px;height:16px;border-radius:8px;background:var(--bad);color:#fff;font-size:10px;line-height:16px;padding:0 4px}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;flex:none}
+.user-chip{display:flex;align-items:center;gap:8px;cursor:pointer}
+.user-chip .nm{line-height:1.2}.user-chip small{display:block;color:var(--text-3);font-size:11px}
+main{padding:20px;max-width:1280px;width:100%}
+.menu-btn{display:none}
+.tabbar{display:none}
+
+/* ---------- common ---------- */
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.page-head h3{font-size:18px}
+.page-head p{color:var(--text-3);font-size:13px;margin-top:4px}
+.card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin-bottom:16px}
+.card-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:8px}
+.card-title h4{font-size:15px}
+.card-title small{color:var(--text-3);font-weight:normal}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:34px;padding:0 14px;border-radius:8px;border:1px solid var(--line);background:#fff;cursor:pointer;white-space:nowrap;font-size:13px}
+.btn:hover{border-color:var(--primary);color:var(--primary)}
+.btn.primary{background:var(--primary);border-color:var(--primary);color:#fff}
+.btn.primary:hover{background:var(--primary-d)}
+.btn.danger{color:var(--bad);border-color:#f2c4c4}.btn.danger:hover{background:var(--bad-l)}
+.btn.good{background:var(--good);border-color:var(--good);color:#fff}
+.btn.sm{height:28px;padding:0 10px;font-size:12px}
+.btn.link{border:none;background:none;color:var(--primary);padding:0 6px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btns{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.tag{display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 8px;border-radius:11px;font-size:12px;background:var(--grey-l);color:var(--text-2);white-space:nowrap}
+.tag.blue{background:var(--primary-l);color:var(--primary-d)}
+.tag.good{background:var(--good-l);color:var(--good)}
+.tag.warn{background:var(--warn-l);color:var(--warn)}
+.tag.bad{background:var(--bad-l);color:var(--bad)}
+.tag.dark{background:#e8eaf3;color:#3d4a7a}
+.badge{min-width:18px;height:18px;border-radius:9px;background:var(--bad);color:#fff;font-size:11px;line-height:18px;text-align:center;padding:0 5px}
+.muted{color:var(--text-3)}.small{font-size:12px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:16px;overflow-x:auto}
+.tab{padding:10px 14px;cursor:pointer;color:var(--text-2);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.tab.active{color:var(--primary);border-color:var(--primary);font-weight:600}
+.seg{display:inline-flex;background:var(--grey-l);border-radius:8px;padding:3px}
+.seg a{padding:6px 14px;border-radius:6px;color:var(--text-2);font-size:13px}
+.seg a.active{background:#fff;color:var(--primary);box-shadow:var(--shadow);font-weight:600}
+.empty{text-align:center;color:var(--text-3);padding:40px 10px}
+.notice{display:flex;gap:10px;align-items:flex-start;background:var(--primary-l);color:var(--primary-d);border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:16px}
+.notice.warn{background:var(--warn-l);color:var(--warn)}
+.notice.good{background:var(--good-l);color:var(--good)}
+
+/* forms */
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field>span{font-size:12px;color:var(--text-2)}
+.field>span i{color:var(--bad);font-style:normal}
+.input,.field input,.field select,.field textarea{width:100%;height:36px;border:1px solid var(--line);border-radius:8px;padding:0 10px;background:#fff;outline:none}
+.field textarea{height:auto;min-height:60px;padding:8px 10px;resize:vertical}
+.input:focus,.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(42,120,214,.12)}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.span2{grid-column:span 2}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.toolbar .input{width:auto;min-width:200px}
+.page-head .input{width:auto}
+.search{position:relative;flex:1;min-width:200px;max-width:420px}
+.search .ic{position:absolute;left:10px;top:9px;color:var(--text-3)}
+.search input{padding-left:34px;width:100%}
+input[type=range]{accent-color:var(--primary)}
+
+/* stat tiles */
+.stat{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 18px}
+.stat .lb{color:var(--text-2);font-size:13px}
+.stat .v{font-size:26px;font-weight:600;margin-top:6px;font-variant-numeric:tabular-nums}
+.stat .v small{font-size:13px;color:var(--text-3);font-weight:normal;margin-left:2px}
+.stat .sub{font-size:12px;color:var(--text-3);margin-top:4px}
+
+/* todo */
+.todo{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line-2)}
+.todo:last-child{border-bottom:none}
+.todo .ti{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none}
+.todo .tx{flex:1;min-width:0}.todo .tx b{display:block;font-weight:600}.todo .tx small{color:var(--text-3)}
+.ti.blue{background:var(--primary-l);color:var(--primary)}.ti.warn{background:var(--warn-l);color:var(--warn)}
+.ti.good{background:var(--good-l);color:var(--good)}.ti.bad{background:var(--bad-l);color:var(--bad)}
+
+/* table */
+.table-wrap{overflow-x:auto}
+table.rt{width:100%;border-collapse:collapse}
+.rt th{text-align:left;font-weight:600;color:var(--text-2);font-size:12px;background:#f7f9fb;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+.rt td{padding:11px 12px;border-bottom:1px solid var(--line-2);vertical-align:middle}
+.rt tr:hover td{background:#fafbfd}
+.rt .num{text-align:right;font-variant-numeric:tabular-nums}
+.pname{font-weight:600;color:var(--text)}
+.pname:hover{color:var(--primary)}
+
+/* list rows */
+.lrow{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line-2)}
+.lrow:last-child{border-bottom:none}
+.lrow .main{flex:1;min-width:0}
+.lrow .t{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lrow .m{font-size:12px;color:var(--text-3);margin-top:4px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.ftype{width:38px;height:44px;border-radius:6px;display:flex;align-items:flex-end;justify-content:center;font-size:10px;font-weight:700;color:#fff;padding-bottom:6px;flex:none;position:relative}
+.ftype:before{content:"";position:absolute;top:0;right:0;border-style:solid;border-width:0 10px 10px 0;border-color:transparent #fff transparent transparent;opacity:.6}
+.ft-pdf{background:#d64545}.ft-docx{background:#2a78d6}.ft-dwg{background:#1a8f4d}.ft-xlsx{background:#127a4a}.ft-zip{background:#7a6a3a}
+
+/* plan item cards */
+.item-card{border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px;background:#fff}
+.item-card .ih{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.item-no{font-weight:600;color:var(--primary)}
+.plan-grid{display:grid;grid-template-columns:2fr 3fr 2fr 110px;gap:12px}
+.plan-grid .full{grid-column:1/-1}
+.plan-ro{background:#f7f9fb;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:13px;display:grid;grid-template-columns:auto 1fr;gap:4px 12px}
+.plan-ro dt{color:var(--text-3)}
+.pct-row{display:flex;align-items:center;gap:12px}
+.pct-row input[type=range]{flex:1}
+.pct-val{width:52px;text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.progress{height:6px;background:var(--line-2);border-radius:3px;overflow:hidden;min-width:60px}
+.progress i{display:block;height:100%;background:var(--primary);border-radius:3px}
+.sticky-foot{position:sticky;bottom:0;background:rgba(255,255,255,.96);backdrop-filter:blur(6px);border-top:1px solid var(--line);margin:0 -18px -18px;padding:12px 18px;border-radius:0 0 var(--radius) var(--radius);display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap}
+
+/* steps */
+.steps{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px}
+.step{display:inline-flex;align-items:center;gap:4px;color:var(--text-3)}
+.step .sd{width:8px;height:8px;border-radius:50%;background:#c8ced8}
+.step.done{color:var(--good)}.step.done .sd{background:var(--good)}
+.step.cur{color:var(--warn)}.step.cur .sd{background:var(--warn)}
+.step.rej{color:var(--bad)}.step.rej .sd{background:var(--bad)}
+.step-sep{width:16px;height:1px;background:#c8ced8}
+
+/* docs */
+.docs-layout{display:grid;grid-template-columns:220px minmax(0,1fr);gap:16px;align-items:start}
+.cat-tree .ct{padding:8px 10px;border-radius:8px;cursor:pointer;display:flex;justify-content:space-between;color:var(--text-2)}
+.cat-tree .ct:hover{background:var(--grey-l)}
+.cat-tree .ct.active{background:var(--primary-l);color:var(--primary-d);font-weight:600}
+.cat-tree .ct.sub{padding-left:24px;font-size:13px}
+.cat-chips{display:none;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:10px}
+.chip{padding:6px 12px;border-radius:16px;background:#fff;border:1px solid var(--line);white-space:nowrap;cursor:pointer;font-size:13px}
+.chip.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.doc-paper{background:#fff;border:1px solid var(--line);border-radius:4px;padding:40px 48px;min-height:480px;position:relative;overflow:hidden;line-height:1.9;font-family:"SimSun","Songti SC",serif}
+.doc-paper h2{text-align:center;font-size:20px;margin-bottom:6px}
+.doc-paper .code{text-align:center;color:var(--text-2);margin-bottom:24px}
+.doc-paper h5{font-size:15px;margin:16px 0 6px}
+.doc-paper p{text-indent:2em;color:#333}
+.wm{position:absolute;inset:0;pointer-events:none;opacity:.12}
+.preview-bg{background:#e9ecf1;padding:18px;border-radius:8px;max-height:62vh;overflow:auto}
+
+/* modal */
+.mask{position:fixed;inset:0;background:rgba(15,30,50,.45);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;animation:fade .15s}
+.modal{background:#fff;border-radius:14px;width:100%;max-width:560px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.modal.wide{max-width:860px}
+.modal-h{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--line)}
+.modal-h h4{font-size:16px}
+.modal-b{padding:20px;overflow:auto}
+.modal-f{padding:12px 20px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+#toast-root{position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:200;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+.toast{background:#1b2430;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.2);animation:fade .2s;max-width:90vw}
+.toast.good{background:var(--good)}.toast.bad{background:var(--bad)}
+
+/* chart */
+.chart svg{width:100%;height:auto;display:block;overflow:visible}
+.chart .grid-l{stroke:#e8ebf0;stroke-width:1}
+.chart .axis-t{fill:#8a94a6;font-size:11px}
+.chart .val-t{fill:#1b2430;font-size:11px;font-weight:600}
+.chart .bar{fill:#2a78d6}
+.chart .bar.me{fill:#1c5cab}
+.chart .hit{fill:transparent;cursor:pointer}
+.chart .hit:hover+.bar,.chart g:hover .bar{fill:#1c5cab}
+.tip{position:fixed;z-index:300;background:#1b2430;color:#fff;font-size:12px;padding:6px 10px;border-radius:6px;pointer-events:none;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.2)}
+.legend-note{font-size:12px;color:var(--text-3);margin-top:8px}
+
+.kv{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 20px}
+.kv div span{display:block;font-size:12px;color:var(--text-3);margin-bottom:2px}
+.kv div b{font-weight:500}
+.timeline{border-left:2px solid var(--line);margin-left:6px;padding-left:16px}
+.tl{position:relative;padding-bottom:14px}
+.tl:before{content:"";position:absolute;left:-22px;top:4px;width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid var(--primary)}
+.tl .tlh{font-size:12px;color:var(--text-3)}
+.score-big{font-size:28px;font-weight:700;color:var(--primary-d);font-variant-numeric:tabular-nums}
+.rule-row{display:grid;grid-template-columns:1fr 160px 60px;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line-2)}
+.rule-row:last-child{border-bottom:none}
+.rule-row .rn b{display:block}.rule-row .rn small{color:var(--text-3)}
+.more-list .nav-item{color:var(--text);padding:14px 12px;border-bottom:1px solid var(--line-2);border-radius:0;margin:0}
+.more-list .nav-item:hover{background:var(--grey-l);color:var(--text)}
+.demo-ribbon{position:fixed;right:-34px;bottom:22px;transform:rotate(-45deg);background:#eda100;color:#fff;font-size:11px;padding:3px 40px;z-index:25;pointer-events:none;letter-spacing:1px}
+
+/* ---------- mobile ---------- */
+@media (max-width:900px){
+  .g4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .g3{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .docs-layout{grid-template-columns:minmax(0,1fr)}
+  .cat-tree{display:none}
+  .cat-chips{display:flex}
+}
+@media (max-width:768px){
+  body{font-size:15px}
+  .sidebar{display:none}
+  .main-wrap{margin-left:0}
+  .topbar{height:50px;padding:0 14px}
+  .topbar h2{font-size:16px}
+  .role-switch,.user-chip .nm{display:none}
+  main{padding:12px 12px calc(76px + env(safe-area-inset-bottom))}
+  .g2{grid-template-columns:1fr}
+  .card{padding:14px;margin-bottom:12px}
+  .grid{gap:12px}
+  .stat{padding:12px 14px}.stat .v{font-size:22px}
+  .form-grid{grid-template-columns:1fr}.span2{grid-column:auto}
+  .plan-grid{grid-template-columns:1fr}
+  .kv{grid-template-columns:1fr 1fr}
+  .page-head h3{font-size:17px}
+  .toolbar .input,.search{min-width:0;max-width:none;width:100%;flex:1 1 100%}
+  .sticky-foot{margin:0 -14px -14px;padding:10px 14px;bottom:calc(60px + env(safe-area-inset-bottom))}
+  .tabbar{display:flex;position:fixed;left:0;right:0;bottom:0;height:calc(60px + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);background:#fff;border-top:1px solid var(--line);z-index:40}
+  .tabbar a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;color:var(--text-3);position:relative}
+  .tabbar a.active{color:var(--primary)}
+  .tabbar svg.ic{width:22px;height:22px}
+  .tabbar .badge{position:absolute;top:5px;left:calc(50% + 6px)}
+  /* responsive table -> cards */
+  table.rt.cards thead{display:none}
+  table.rt.cards,table.rt.cards tbody,table.rt.cards tr,table.rt.cards td{display:block;width:100%}
+  table.rt.cards tr{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:10px}
+  table.rt.cards td{border:none;padding:4px 0;display:flex;justify-content:space-between;gap:12px;text-align:right}
+  table.rt.cards td:before{content:attr(data-l);color:var(--text-3);font-size:13px;text-align:left;flex:none}
+  table.rt.cards td.first{display:block;text-align:left;font-size:15px;padding-bottom:6px;border-bottom:1px dashed var(--line);margin-bottom:4px}
+  table.rt.cards td.first:before{display:none}
+  table.rt.cards td.num{text-align:right}
+  table.rt.cards tr:hover td{background:none}
+  .modal{max-height:92vh;border-radius:14px 14px 0 0;align-self:flex-end}
+  .mask{padding:0;align-items:flex-end}
+  .doc-paper{padding:24px 18px;min-height:360px}
+  .rule-row{grid-template-columns:1fr 100px 44px}
+  #toast-root{top:60px}
+  .demo-ribbon{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- 登录 -->
+<div id="login" class="login hidden">
+  <div class="login-card">
+    <div class="login-brand"><div class="logo" id="login-logo"></div><h1>宏禹水利管理软件</h1></div>
+    <div class="login-sub">内部办公系统 · 请使用公司分配的账号登录</div>
+    <form onsubmit="doLogin(event)">
+      <label class="field" style="margin-bottom:14px"><span>账号（工号）</span><input id="lg-u" placeholder="请输入账号" autocomplete="username"></label>
+      <label class="field" style="margin-bottom:18px"><span>密码</span><input id="lg-p" type="password" placeholder="请输入密码" autocomplete="current-password"></label>
+      <button class="btn primary" style="width:100%;height:42px;font-size:15px">登 录</button>
+      <div class="muted small" style="margin-top:10px;text-align:center">忘记密码请联系系统管理员重置</div>
+    </form>
+    <div class="demo-acc">
+      <p>演示账号（密码均为 123456，点击直接登录）</p>
+      <div class="chips" id="demo-accs"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 主框架 -->
+<div id="app" class="app hidden">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><div class="logo" id="side-logo"></div><div><b>宏禹水利管理</b><small>内部办公系统</small></div></div>
+    <nav id="nav"></nav>
+  </aside>
+  <div class="main-wrap">
+    <header class="topbar">
+      <h2 id="page-title">工作台</h2>
+      <div class="top-right">
+        <div class="role-switch">演示切换账号
+          <select id="role-switch" onchange="switchUser(this.value)"></select>
+        </div>
+        <button class="icon-btn" onclick="go('home')" title="待办" id="bell"></button>
+        <div class="user-chip" onclick="go('more')">
+          <div class="avatar" id="me-avatar"></div>
+          <div class="nm"><span id="me-name"></span><small id="me-role"></small></div>
+        </div>
+      </div>
+    </header>
+    <main id="main"></main>
+  </div>
+  <nav class="tabbar" id="tabbar"></nav>
+  <div class="demo-ribbon">演示原型</div>
+</div>
+
+<div id="modal-root"></div>
+<div id="toast-root"></div>
+<div id="tip" class="tip hidden"></div>
+
+<script>
+/* =====================================================================
+ * 宏禹水利管理软件 —— 演示原型（纯前端，数据保存在浏览器 localStorage）
+ * ===================================================================== */
+
+/* ---------------- 工具 ---------------- */
+const $ = s => document.querySelector(s);
+const pad = n => String(n).padStart(2, '0');
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clone = o => JSON.parse(JSON.stringify(o));
+const uid = p => (p || 'id') + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const fmtD = d => { d = new Date(d); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; };
+const fmtDT = d => { d = new Date(d); return `${fmtD(d)} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+const fmtMD = d => `${pad(d.getMonth()+1)}.${pad(d.getDate())}`;
+const ym = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}`;
+function mulberry(a){ return function(){ a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function hash(s){ let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) | 0; return h; }
+function mondayOf(d){ const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate() - (x.getDay() + 6) % 7); return x; }
+function isoWeek(d){ const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const dn = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - dn); const y = t.getUTCFullYear(); const w = Math.ceil(((t - Date.UTC(y, 0, 1)) / 864e5 + 1) / 7); return { y, w }; }
+function weekKey(d){ const { y, w } = isoWeek(d); return `${y}-W${pad(w)}`; }
+function weekMon(n){ const m = mondayOf(TODAY); m.setDate(m.getDate() + 7 * n); return m; }
+function weekLabel(mon, short){ const s = new Date(mon), e = new Date(mon); e.setDate(e.getDate() + 6); const { y, w } = isoWeek(s); return short ? `第${w}周（${fmtMD(s)}-${fmtMD(e)}）` : `${y}年第${w}周（${fmtMD(s)} - ${fmtMD(e)}）`; }
+const avg = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0;
+
+const TODAY = new Date();
+const CUR_WK = weekKey(weekMon(0));
+const PREV_MONTH = ym(new Date(TODAY.getFullYear(), TODAY.getMonth() - 1, 1));
+const PREV2_MONTH = ym(new Date(TODAY.getFullYear(), TODAY.getMonth() - 2, 1));
+
+/* ---------------- 图标 ---------------- */
+const ICONS = {
+  home:'M3 10l9-7 9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+  folder:'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+  edit:'M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z',
+  check:'M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11',
+  list:'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01',
+  star:'M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z',
+  chart:'M3 3v18h18M7 15v3M12 10v8M17 6v12',
+  book:'M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5zM4 19.5V21h16',
+  download:'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3',
+  approve:'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10zM9 12l2 2 4-4',
+  upload:'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12',
+  users:'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8',
+  user:'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
+  bell:'M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0',
+  search:'M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3',
+  eye:'M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
+  plus:'M12 5v14M5 12h14', x:'M18 6L6 18M6 6l12 12',
+  logout:'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9',
+  grid:'M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z',
+  clock:'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 6v6l4 2',
+  info:'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 16v-4M12 8h.01',
+  refresh:'M23 4v6h-6M1 20v-6h6M3.5 9a9 9 0 0 1 14.8-3.4L23 10M1 14l4.7 4.4A9 9 0 0 0 20.5 15',
+  lock:'M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4',
+  trash:'M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6'
+};
+const ic = (n, s) => `<svg class="ic" viewBox="0 0 24 24" ${s ? `style="width:${s}px;height:${s}px"` : ''}><path d="${ICONS[n]}"/></svg>`;
+const DROP = `<svg viewBox="0 0 24 24"><path d="M12 2.5s7 7.4 7 12.4a7 7 0 0 1-14 0c0-5 7-12.4 7-12.4z"/></svg>`;
+
+/* ---------------- 演示数据 ---------------- */
+const DB_KEY = 'hongyu_demo_v2';
+const ROLE_NAME = { staff:'员工', manager:'部门负责人', leader:'公司领导', docadmin:'资料管理员', admin:'系统管理员' };
+
+function seed(){
+  const depts = [
+    { id:'d1', name:'规划设计一部' }, { id:'d2', name:'水工设计部' }, { id:'d3', name:'综合管理部' }
+  ];
+  const users = [
+    { id:'u1', account:'zhangsan', name:'张三', no:'HY1001', dept:'d1', title:'水利工程师', roles:['staff'] },
+    { id:'u2', account:'lisi',     name:'李四', no:'HY1002', dept:'d1', title:'部门经理', roles:['staff','manager'] },
+    { id:'u3', account:'wangwu',   name:'王五', no:'HY1003', dept:'d1', title:'助理工程师', roles:['staff'] },
+    { id:'u7', account:'zhouba',   name:'周八', no:'HY1007', dept:'d1', title:'工程师', roles:['staff'] },
+    { id:'u4', account:'zhaoliu',  name:'赵六', no:'HY2001', dept:'d2', title:'高级工程师', roles:['staff'] },
+    { id:'u5', account:'sunqi',    name:'孙七', no:'HY2002', dept:'d2', title:'部门经理', roles:['staff','manager'] },
+    { id:'u8', account:'wujiu',    name:'吴九', no:'HY2003', dept:'d2', title:'工程师', roles:['staff'] },
+    { id:'u6', account:'chenzong', name:'陈总', no:'HY0001', dept:'d3', title:'总经理', roles:['staff','leader'] },
+    { id:'u9', account:'admin',    name:'刘管理', no:'HY3001', dept:'d3', title:'信息化专员', roles:['staff','admin','docadmin'] }
+  ].map(u => ({ ...u, pwd:'123456', phone:'138****' + u.no.slice(-4), status:'正常' }));
+
+  const projects = [
+    { id:'p1', code:'HY-2026-001', name:'青溪县中小河流治理工程初步设计', type:'设计', client:'青溪县水利局', leader:'u2', members:['u1','u3'], dept:'d1', start:'2026-03-01', planEnd:'2026-12-30', status:'进行中', amount:86 },
+    { id:'p2', code:'HY-2026-002', name:'红旗灌区续建配套与节水改造规划', type:'规划', client:'红旗灌区管理处', leader:'u1', members:['u3','u7'], dept:'d1', start:'2026-05-10', planEnd:'2026-11-30', status:'进行中', amount:52 },
+    { id:'p3', code:'HY-2026-003', name:'白云水库除险加固工程安全鉴定', type:'咨询', client:'白云水库管理所', leader:'u2', members:['u1','u7'], dept:'d1', start:'2026-04-01', planEnd:'2026-09-30', actualEnd:'2026-09-26', status:'已存档', archive:PREV_MONTH + '-12', amount:38 },
+    { id:'p4', code:'HY-2026-004', name:'临江市水资源综合规划（2026-2035）', type:'规划', client:'临江市水务局', leader:'u7', members:['u1','u3'], dept:'d1', start:'2026-01-15', planEnd:'2026-09-30', actualEnd:'2026-10-08', status:'已存档', archive:PREV_MONTH + '-20', amount:120 },
+    { id:'p5', code:'HY-2026-005', name:'长丰河防洪评价报告', type:'咨询', client:'长丰镇人民政府', leader:'u4', members:['u8'], dept:'d2', start:'2026-06-01', planEnd:'2026-10-15', actualEnd:'2026-10-12', status:'已存档', archive:PREV_MONTH + '-25', amount:26 },
+    { id:'p6', code:'HY-2026-006', name:'东湖泵站更新改造施工图设计', type:'设计', client:'东湖区农业农村局', leader:'u5', members:['u4','u8'], dept:'d2', start:'2026-07-01', planEnd:'2027-01-31', status:'进行中', amount:95 },
+    { id:'p7', code:'HY-2026-007', name:'石门水电站水土保持方案编制', type:'咨询', client:'石门水电开发公司', leader:'u3', members:['u1'], dept:'d1', start:'2026-08-01', planEnd:'2026-11-10', actualEnd:'2026-11-06', status:'已完成', amount:18 },
+    { id:'p8', code:'HY-2026-008', name:'北山片区农村供水保障工程可行性研究', type:'设计', client:'北山县水利局', leader:'u4', members:['u5'], dept:'d2', start:'2026-12-01', planEnd:'2027-05-30', status:'未开始', amount:64 },
+    { id:'p9', code:'HY-2025-031', name:'南渠堤防加固工程施工图设计', type:'设计', client:'南渠河道管理处', leader:'u2', members:['u1','u3'], dept:'d1', start:'2025-11-01', planEnd:'2026-08-31', actualEnd:'2026-08-28', status:'已存档', archive:PREV2_MONTH + '-15', amount:72 }
+  ];
+
+  // 周报
+  const CONTENT = ['水文分析计算','编制设计报告第三章','现场查勘及资料收集','绘制工程总布置图','工程量计算与概算编制','根据评审意见修改报告','内部校审及成果整理','与业主沟通技术方案','地质资料复核','水力计算及稳定分析'];
+  const TARGET = ['完成初稿','完成计算书','形成查勘记录','完成图纸 5 张','完成概算表','提交修改稿','完成校审单','形成会议纪要'];
+  const REASON = ['业主资料提供延迟','评审意见调整较大','临时插入投标工作','现场天气原因推迟查勘'];
+  const plans = {};
+  const staffIds = ['u1','u2','u3','u7','u4','u5','u8'];
+  staffIds.forEach(u => {
+    const rnd = mulberry(hash(u));
+    for (let w = -20; w <= 0; w++){
+      const mon = weekMon(w), wk = weekKey(mon), ms = fmtD(mon);
+      const mine = projects.filter(p => (p.leader === u || p.members.includes(u)) && p.status !== '未开始' && p.start <= ms && (p.actualEnd || p.planEnd) >= ms);
+      if (w === 0 && (u === 'u3' || u === 'u8')) continue;          // 本周未填
+      const n = 2 + Math.floor(rnd() * 2);
+      const items = [];
+      for (let i = 0; i < n; i++){
+        const p = mine.length ? mine[Math.floor(rnd() * mine.length)] : null;
+        const pct = rnd() < 0.7 ? 100 : [60, 70, 80, 90][Math.floor(rnd() * 4)];
+        const days = [0.5, 1, 1.5, 2, 2.5][Math.floor(rnd() * 5)];
+        items.push({ pid: p ? p.id : 'other', content: p ? CONTENT[Math.floor(rnd() * CONTENT.length)] : '部门例会及投标资料准备', target: TARGET[Math.floor(rnd() * TARGET.length)], days, note:'',
+          pct: w < 0 ? pct : null, actual: w < 0 ? (pct === 100 ? '已按计划完成' : '完成部分内容') : '', actualDays: w < 0 ? days : null, reason: w < 0 && pct < 100 ? REASON[Math.floor(rnd() * REASON.length)] : '' });
+      }
+      const sub = new Date(mon); sub.setHours(9 + Math.floor(rnd() * 8), Math.floor(rnd() * 60));
+      const overdue = (w === 0 && u === 'u7') || (w < 0 && rnd() < 0.08);
+      if (overdue) sub.setDate(sub.getDate() + 1);
+      const rep = new Date(mon); rep.setDate(rep.getDate() + 4); rep.setHours(15 + Math.floor(rnd() * 3), Math.floor(rnd() * 60));
+      plans[u + '|' + wk] = { uid:u, wk, mon:fmtD(mon), status:'已提交', submittedAt:sub.getTime(), overdue, items, extra:[],
+        reportStatus: w < 0 ? '已提交' : '未填', reportAt: w < 0 ? rep.getTime() : null, reportOverdue:false, comment: w === -1 && u === 'u1' ? '本周进度良好，注意红旗灌区规划报告的评审时间节点。' : '' };
+    }
+  });
+
+  const scoreRules = [
+    { key:'progress', name:'进度完成情况', weight:30, desc:'是否按计划工期完成；参考周报完成率、逾期次数' },
+    { key:'quality',  name:'成果质量',     weight:40, desc:'校审意见、评审通过情况、返工次数' },
+    { key:'workload', name:'工作量与难度', weight:20, desc:'项目规模、技术难度、投入工时' },
+    { key:'client',   name:'客户评价',     weight:10, desc:'委托单位满意度反馈' }
+  ];
+  const scores = [
+    { id:'s1', pid:'p9', month:PREV2_MONTH, items:{progress:92,quality:90,workload:88,client:95}, comment:'按期完成，图纸质量较好。', scorer:'u2', scoredAt:Date.now() - 40*864e5, status:'已发布', publishedBy:'u6' },
+    { id:'s2', pid:'p3', month:PREV_MONTH, items:{progress:95,quality:88,workload:85,client:92}, comment:'提前完成鉴定工作，报告结构清晰，个别计算书需补充说明。', scorer:'u2', scoredAt:Date.now() - 6*864e5, status:'已发布', publishedBy:'u6' },
+    { id:'s3', pid:'p4', month:PREV_MONTH, items:{progress:78,quality:92,workload:95,client:90}, comment:'规划成果获得专家好评；工期较计划延后 8 天。', scorer:'u2', scoredAt:Date.now() - 3*864e5, status:'已打分' },
+    { id:'s4', pid:'p5', month:PREV_MONTH, items:null, comment:'', status:'待打分' }
+  ];
+
+  const D = (id, cat, sub, code, name, year, level, ftype, size, views, extra) => ({ id, cat, sub, code, name, year, level, ftype, size, views, downloads: Math.floor(views / 6), status:'上架', uploadAt:fmtD(new Date(TODAY.getTime() - (views % 90) * 864e5)), uploader:'u9', path:`\\\\NAS01\\资料库\\${cat}\\${sub}\\`, ...(extra || {}) });
+  const docs = [
+    D('doc1','相关规范','水利行业标准','SL 252-2017','水利水电工程等级划分及洪水标准',2017,'公开','pdf','3.2 MB',486),
+    D('doc2','相关规范','国家标准','GB 50201-2014','防洪标准',2014,'公开','pdf','2.1 MB',402),
+    D('doc3','相关规范','水利行业标准','SL 274-2020','碾压式土石坝设计规范',2020,'公开','pdf','6.8 MB',233),
+    D('doc4','相关规范','水利行业标准','SL 319-2018','混凝土重力坝设计规范',2018,'公开','pdf','5.4 MB',198),
+    D('doc5','相关规范','国家标准','GB 50288-2018','灌溉与排水工程设计标准',2018,'公开','pdf','4.6 MB',275),
+    D('doc6','相关规范','水利行业标准','SL 44-2006','水利水电工程设计洪水计算规范',2006,'公开','pdf','2.9 MB',318),
+    D('doc7','相关规范','水利行业标准','SL 619-2021','水利水电工程初步设计报告编制规程',2021,'公开','pdf','1.8 MB',356),
+    D('doc8','相关规范','地方标准','DB 33/T 2435-2022','河湖健康评价规范',2022,'公开','pdf','1.2 MB',87),
+    D('doc9','公司成果','设计报告','HY-2025-018','南渠堤防加固工程初步设计报告',2025,'内部','docx','18.5 MB',142),
+    D('doc10','公司成果','设计图纸','HY-2025-031','南渠堤防加固工程施工图（全套）',2026,'涉密','dwg','126 MB',64),
+    D('doc11','公司成果','规划报告','HY-2026-004','临江市水资源综合规划报告（送审稿）',2026,'内部','docx','22.3 MB',96, { isNew:true }),
+    D('doc12','公司成果','获奖成果','HY-2024-007','翠屏水库扩建工程设计（省优秀设计一等奖）',2024,'内部','pdf','45.0 MB',210),
+    D('doc13','公司成果','可研报告','HY-2025-022','西河生态补水工程可行性研究报告',2025,'涉密','pdf','31.7 MB',53),
+    D('doc14','行业资料','政策文件','水总〔2014〕429号','水利工程设计概（估）算编制规定',2014,'公开','pdf','2.4 MB',389),
+    D('doc15','行业资料','政策文件','水规计〔2023〕xx号','关于加快推进中小河流治理的指导意见',2023,'公开','pdf','0.8 MB',121),
+    D('doc16','行业资料','技术参考','—','水工建筑物抗震设计实例汇编',2021,'内部','pdf','58.2 MB',77),
+    D('doc17','行业资料','典型案例','—','全国灌区现代化改造典型案例集',2024,'公开','pdf','12.6 MB',104),
+    D('doc18','行业资料','定额造价','—','水利建筑工程预算定额（2024 版）',2024,'内部','xlsx','8.9 MB',166, { isNew:true })
+  ];
+
+  const N = (name, role) => ({ name, role, status:'未开始', by:null, at:null, comment:'' });
+  const reqs = [
+    { id:'r1', uid:'u1', docIds:['doc1','doc6'], purpose:'青溪县中小河流治理初设，洪水标准复核', time:Date.now() - 2*864e5, status:'已通过', expire:Date.now() + 5*864e5, downloads:1, maxDownloads:3,
+      nodes:[{ ...N('部门负责人审批','manager'), status:'通过', by:'u2', at:Date.now() - 2*864e5 + 36e5, comment:'同意' }] },
+    { id:'r2', uid:'u1', docIds:['doc10'], purpose:'参考南渠堤防施工图做法，用于青溪县项目断面设计', time:Date.now() - 864e5, status:'待审批', downloads:0, maxDownloads:3,
+      nodes:[{ ...N('部门负责人审批','manager'), status:'通过', by:'u2', at:Date.now() - 20*36e5, comment:'同意，注意保密' }, { ...N('公司领导终审','leader'), status:'待审批' }] },
+    { id:'r3', uid:'u1', docIds:['doc13'], purpose:'学习参考', time:Date.now() - 6*864e5, status:'已驳回', downloads:0, maxDownloads:3,
+      nodes:[{ ...N('部门负责人审批','manager'), status:'驳回', by:'u2', at:Date.now() - 6*864e5 + 72e5, comment:'用途不明确，请说明具体项目' }, N('公司领导终审','leader')] },
+    { id:'r4', uid:'u3', docIds:['doc9','doc7'], purpose:'红旗灌区规划报告编写参考格式', time:Date.now() - 5*36e5, status:'待审批', downloads:0, maxDownloads:3,
+      nodes:[{ ...N('部门负责人审批','manager'), status:'待审批' }] },
+    { id:'r5', uid:'u7', docIds:['doc12'], purpose:'投标文件业绩证明材料', time:Date.now() - 3*36e5, status:'待审批', downloads:0, maxDownloads:3,
+      nodes:[{ ...N('部门负责人审批','manager'), status:'待审批' }] },
+    { id:'r6', uid:'u4', docIds:['doc4'], purpose:'东湖泵站挡墙稳定计算', time:Date.now() - 8*36e5, status:'待审批', downloads:0, maxDownloads:3,
+      nodes:[{ ...N('部门负责人审批','manager'), status:'待审批' }] }
+  ];
+
+  return { depts, users, projects, plans, scoreRules, scores, docs, reqs,
+    fillRules:{ planDeadline:'周一 23:59', reportDeadline:'周五 23:59', planRemind:'周一 09:00', reportRemind:'周五 15:00', overdueScore:'每次逾期扣进度分 2 分', holiday:'节假日自动顺延至下一工作日' },
+    logs:[
+      { t:Date.now() - 2*864e5 + 4e6, uid:'u1', a:'下载', o:'SL 252-2017 水利水电工程等级划分及洪水标准' },
+      { t:Date.now() - 3*864e5, uid:'u4', a:'下载', o:'GB 50201-2014 防洪标准' },
+      { t:Date.now() - 4*864e5, uid:'u2', a:'审批通过', o:'张三 的下载申请' },
+      { t:Date.now() - 5*864e5, uid:'u9', a:'上传资料', o:'水利建筑工程预算定额（2024 版）' }
+    ] };
+}
+
+let db = (() => { try { const d = JSON.parse(localStorage.getItem(DB_KEY)); if (d && d.users) return d; } catch (e) {} return seed(); })();
+const save = () => localStorage.setItem(DB_KEY, JSON.stringify(db));
+save();
+
+/* ---------------- 会话与权限 ---------------- */
+let ME = sessionStorage.getItem('hy_me');
+const me = () => db.users.find(u => u.id === ME);
+const U = id => db.users.find(u => u.id === id) || { name:'—' };
+const P = id => db.projects.find(p => p.id === id);
+const DOC = id => db.docs.find(d => d.id === id);
+const deptName = id => (db.depts.find(d => d.id === id) || {}).name || '—';
+const has = r => me() && me().roles.includes(r);
+const isMgr = () => has('manager') || has('leader') || has('admin');
+const log = (a, o) => { db.logs.unshift({ t:Date.now(), uid:ME, a, o }); };
+const roleText = u => u.roles.filter(r => r !== 'staff' || u.roles.length === 1).map(r => ROLE_NAME[r]).join(' / ');
+const getPlan = (u, wk) => db.plans[u + '|' + wk];
+const myProjects = u => db.projects.filter(p => p.leader === u || p.members.includes(u));
+const planRate = p => { const its = (p.items || []).filter(i => i.pct != null); return its.length ? Math.round(avg(its.map(i => +i.pct))) : null; };
+const pname = id => id === 'other' ? '其他工作（非项目）' : (P(id) ? P(id).name : '—');
+
+/* ---------------- UI 基础 ---------------- */
+function toast(msg, type){ const el = document.createElement('div'); el.className = 'toast ' + (type || ''); el.textContent = msg; $('#toast-root').appendChild(el); setTimeout(() => el.remove(), 2400); }
+function openModal(title, body, foot, wide){
+  $('#modal-root').innerHTML = `<div class="mask" onclick="if(event.target===this)closeModal()"><div class="modal ${wide ? 'wide' : ''}">
+    <div class="modal-h"><h4>${title}</h4><button class="icon-btn" onclick="closeModal()">${ic('x')}</button></div>
+    <div class="modal-b">${body}</div>${foot ? `<div class="modal-f">${foot}</div>` : ''}</div></div>`;
+}
+function closeModal(){ $('#modal-root').innerHTML = ''; }
+const statusTag = s => {
+  const m = { '进行中':'blue', '已完成':'good', '已存档':'dark', '未开始':'', '暂停':'warn', '终止':'bad', '待审批':'warn', '已通过':'good', '已驳回':'bad', '已提交':'good', '未填':'bad', '草稿':'warn', '待打分':'warn', '已打分':'blue', '已发布':'good', '上架':'good', '下架':'', '正常':'good', '停用':'bad', '公开':'good', '内部':'blue', '涉密':'bad' };
+  return `<span class="tag ${m[s] || ''}">${esc(s)}</span>`;
+};
+
+/* tooltip */
+document.addEventListener('mousemove', e => {
+  const t = e.target.closest && e.target.closest('[data-tip]'); const tip = $('#tip');
+  if (!t){ tip.classList.add('hidden'); return; }
+  tip.innerHTML = t.getAttribute('data-tip'); tip.classList.remove('hidden');
+  const w = tip.offsetWidth; tip.style.left = Math.min(e.clientX + 12, innerWidth - w - 8) + 'px'; tip.style.top = (e.clientY - 36) + 'px';
+});
+
+/* ---------------- 菜单与路由 ---------------- */
+const MENU = [
+  { g:'', items:[{ k:'home', t:'工作台', i:'home' }] },
+  { g:'项目管理', items:[
+    { k:'projects', t:'项目台账', i:'folder' },
+    { k:'plan', t:'周计划填报', i:'edit' },
+    { k:'report', t:'周完成情况', i:'check' },
+    { k:'weekly', t:'周报查询统计', i:'list' },
+    { k:'score', t:'月度考评', i:'star' },
+    { k:'annual', t:'年度汇总', i:'chart' } ] },
+  { g:'资料中心', items:[
+    { k:'docs', t:'资料查询', i:'book' },
+    { k:'myreq', t:'我的下载申请', i:'download' },
+    { k:'approvals', t:'下载审批', i:'approve', roles:['manager','leader'] },
+    { k:'docadmin', t:'资料维护', i:'upload', roles:['docadmin'] } ] },
+  { g:'系统管理', items:[{ k:'system', t:'系统管理', i:'users', roles:['admin'] }] }
+];
+const visible = it => !it.roles || it.roles.some(has);
+const TITLES = { project:'项目详情', more:'我的' };
+MENU.forEach(g => g.items.forEach(i => TITLES[i.k] = i.t));
+
+function counts(){
+  const u = me(); const c = {};
+  c.approvals = db.reqs.filter(r => canApprove(r)).length;
+  const p = getPlan(u.id, CUR_WK);
+  c.plan = p ? 0 : 1;
+  c.report = p && p.reportStatus !== '已提交' ? 1 : 0;
+  c.score = db.scores.filter(s => (s.status === '待打分' && canScore(s)) || (s.status === '已打分' && (has('leader') || has('admin')))).length;
+  return c;
+}
+
+let route = 'home', param = null, lastRoute = null;
+function go(r, p){ location.hash = '#/' + r + (p ? '/' + p : ''); }
+function router(){
+  if (!me()){ showLogin(); return; }
+  const h = location.hash.replace(/^#\/?/, '').split('/');
+  route = h[0] || 'home'; param = h[1] || null;
+  const item = MENU.flatMap(g => g.items).find(i => i.k === route);
+  if (!PAGES[route] || (item && !visible(item))){ go('home'); return; }
+  if (route !== lastRoute){ planDraft = null; reportDraft = null; window.scrollTo(0, 0); }
+  lastRoute = route;
+  renderShell();
+  $('#main').innerHTML = PAGES[route]();
+  if (AFTER[route]) AFTER[route]();
+}
+window.addEventListener('hashchange', router);
+
+function renderShell(){
+  const u = me(), c = counts();
+  $('#login').classList.add('hidden'); $('#app').classList.remove('hidden');
+  $('#nav').innerHTML = MENU.map(g => {
+    const its = g.items.filter(visible); if (!its.length) return '';
+    return (g.g ? `<div class="nav-group">${g.g}</div>` : '') + its.map(i =>
+      `<div class="nav-item ${route === i.k || (route === 'project' && i.k === 'projects') ? 'active' : ''}" onclick="go('${i.k}')">${ic(i.i)}<span>${i.t}</span>${c[i.k] ? `<span class="badge">${c[i.k]}</span>` : ''}</div>`).join('');
+  }).join('');
+  $('#page-title').textContent = TITLES[route] || '';
+  $('#me-avatar').textContent = u.name.slice(-1);
+  $('#me-name').textContent = u.name;
+  $('#me-role').textContent = deptName(u.dept) + ' · ' + roleText(u);
+  const total = c.approvals + c.plan + c.report + c.score;
+  $('#bell').innerHTML = ic('bell', 20) + (total ? `<span class="dot">${total}</span>` : '');
+  $('#role-switch').innerHTML = DEMO_ACCS.map(a => `<option value="${a.id}" ${a.id === ME ? 'selected' : ''}>${U(a.id).name}（${a.r}）</option>`).join('');
+  const tb = [['home','工作台','home'],['plan','填报','edit'],['projects','项目','folder'],['docs','资料','book'],['more','我的','user']];
+  const fillAct = route === 'plan' || route === 'report';
+  $('#tabbar').innerHTML = tb.map(([k, t, i]) => {
+    const act = route === k || (k === 'plan' && fillAct) || (k === 'projects' && route === 'project') || (k === 'more' && !tb.some(x => x[0] === route) && !fillAct && route !== 'project');
+    const b = k === 'plan' ? c.plan + c.report : k === 'more' ? c.approvals + c.score : 0;
+    return `<a class="${act ? 'active' : ''}" onclick="go('${k}')">${ic(i)}<span>${t}</span>${b ? `<span class="badge">${b}</span>` : ''}</a>`;
+  }).join('');
+}
+
+/* ---------------- 登录 ---------------- */
+const DEMO_ACCS = [
+  { id:'u1', r:'普通员工' }, { id:'u2', r:'部门负责人' }, { id:'u6', r:'公司领导' }, { id:'u9', r:'管理员' }
+];
+function showLogin(){
+  $('#app').classList.add('hidden'); $('#login').classList.remove('hidden');
+  $('#demo-accs').innerHTML = DEMO_ACCS.map(a => { const u = U(a.id); return `<button type="button" onclick="quickLogin('${u.account}')"><b>${u.name} · ${a.r}</b><small>账号 ${u.account}</small></button>`; }).join('');
+}
+function quickLogin(acc){ $('#lg-u').value = acc; $('#lg-p').value = '123456'; doLogin(); }
+function doLogin(e){
+  if (e) e.preventDefault();
+  const a = $('#lg-u').value.trim(), p = $('#lg-p').value;
+  if (!a || !p) return toast('请输入账号和密码', 'bad');
+  const u = db.users.find(x => x.account === a || x.no === a);
+  if (!u || u.pwd !== p) return toast('账号或密码错误（连续错误 5 次将锁定 15 分钟）', 'bad');
+  if (u.status === '停用') return toast('该账号已停用，请联系管理员', 'bad');
+  ME = u.id; sessionStorage.setItem('hy_me', ME);
+  log('登录', '系统'); save();
+  toast(`欢迎回来，${u.name}`, 'good');
+  if (location.hash === '#/home') router(); else go('home');
+}
+function switchUser(id){ ME = id; sessionStorage.setItem('hy_me', ME); toast('已切换为：' + U(id).name, 'good'); router(); }
+function logout(){ ME = null; sessionStorage.removeItem('hy_me'); closeModal(); showLogin(); }
+function changePwd(){
+  openModal('修改密码', `<div class="form-grid" style="grid-template-columns:1fr">
+    <label class="field"><span>原密码</span><input id="cp-o" type="password"></label>
+    <label class="field"><span>新密码</span><input id="cp-n" type="password" placeholder="至少 8 位，需包含字母和数字"></label>
+    <label class="field"><span>确认新密码</span><input id="cp-c" type="password"></label></div>`,
+    `<button class="btn" onclick="closeModal()">取消</button><button class="btn primary" onclick="doChangePwd()">确认修改</button>`);
+}
+function doChangePwd(){
+  const o = $('#cp-o').value, n = $('#cp-n').value, c = $('#cp-c').value;
+  if (o !== me().pwd) return toast('原密码不正确', 'bad');
+  if (n.length < 8 || !/[a-zA-Z]/.test(n) || !/\d/.test(n)) return toast('新密码至少 8 位，且需包含字母和数字', 'bad');
+  if (n !== c) return toast('两次输入的密码不一致', 'bad');
+  me().pwd = n; save(); closeModal(); toast('密码已修改，下次请使用新密码登录', 'good');
+}
+function resetDemo(){
+  if (!confirm('确定重置所有演示数据吗？')) return;
+  localStorage.removeItem(DB_KEY); db = seed(); save(); toast('演示数据已重置', 'good'); router();
+}
+
+/* =====================================================================
+ * 页面
+ * ===================================================================== */
+const PAGES = {}, AFTER = {};
+
+/* ---------- 工作台 ---------- */
+PAGES.home = () => {
+  const u = me(), c = counts(), p = getPlan(u.id, CUR_WK);
+  const lastP = getPlan(u.id, weekKey(weekMon(-1)));
+  const myPs = myProjects(u.id);
+  const myScore = db.scores.filter(s => s.status === '已发布' && s.month === PREV_MONTH && P(s.pid) && (P(s.pid).leader === u.id || P(s.pid).members.includes(u.id)));
+  const pendingReq = db.reqs.filter(r => r.uid === u.id && r.status === '待审批').length;
+  const hr = TODAY.getHours();
+  const todos = [];
+  todos.push(p ? { cls:'good', i:'edit', t:'本周计划已提交', s:`提交于 ${fmtDT(p.submittedAt)}${p.overdue ? ' · 逾期' : ''}`, btn:'查看', go:'plan' }
+               : { cls:'bad', i:'edit', t:'本周计划未填报', s:'请在 周一 23:59 前完成填报', btn:'去填报', go:'plan', pri:true });
+  if (p) todos.push(p.reportStatus === '已提交' ? { cls:'good', i:'check', t:'本周完成情况已提交', s:`本周完成率 ${planRate(p)}%`, btn:'查看', go:'report' }
+                                              : { cls:'warn', i:'check', t:'本周完成情况待填报', s:'周五 15:00 系统提醒，周五 23:59 截止', btn:'去填报', go:'report', pri:true });
+  if (c.approvals) todos.push({ cls:'warn', i:'approve', t:`${c.approvals} 条下载申请待审批`, s:'资料下载审批', btn:'去审批', go:'approvals', pri:true });
+  if (c.score) todos.push({ cls:'blue', i:'star', t:`${c.score} 个存档项目待${has('leader') || has('admin') ? '审核发布' : '打分'}`, s:`${PREV_MONTH} 月度考评`, btn:'去处理', go:'score', pri:true });
+  if (pendingReq) todos.push({ cls:'blue', i:'download', t:`${pendingReq} 条下载申请审批中`, s:'审批结果会通知您', btn:'查看', go:'myreq' });
+
+  return `
+  <div class="page-head"><div><h3>${hr < 12 ? '上午好' : hr < 18 ? '下午好' : '晚上好'}，${esc(u.name)}</h3><p>${fmtD(TODAY)} 星期${'日一二三四五六'[TODAY.getDay()]} · ${weekLabel(weekMon(0))}</p></div></div>
+  <div class="grid g4" style="margin-bottom:16px">
+    <div class="stat"><div class="lb">我参与的项目</div><div class="v">${myPs.length}<small>个</small></div><div class="sub">进行中 ${myPs.filter(x => x.status === '进行中').length} 个</div></div>
+    <div class="stat"><div class="lb">本周计划事项</div><div class="v">${p ? p.items.length : 0}<small>项</small></div><div class="sub">计划工时 ${p ? p.items.reduce((a, b) => a + (+b.days || 0), 0) : 0} 天</div></div>
+    <div class="stat"><div class="lb">上周完成率</div><div class="v">${lastP && planRate(lastP) != null ? planRate(lastP) : '—'}<small>%</small></div><div class="sub">${weekLabel(weekMon(-1), true)}</div></div>
+    <div class="stat"><div class="lb">上月考评均分</div><div class="v">${myScore.length ? scoreTotal(myScore[0]).toFixed(1) : '—'}<small>分</small></div><div class="sub">${PREV_MONTH} · ${myScore.length} 个存档项目</div></div>
+  </div>
+  <div class="grid g2">
+    <div class="card"><div class="card-title"><h4>我的待办</h4><small>${todos.filter(t => t.pri).length} 项待处理</small></div>
+      ${todos.map(t => `<div class="todo"><div class="ti ${t.cls}">${ic(t.i)}</div><div class="tx"><b>${t.t}</b><small>${t.s}</small></div><button class="btn sm ${t.pri ? 'primary' : ''}" onclick="go('${t.go}')">${t.btn}</button></div>`).join('')}
+    </div>
+    <div class="card"><div class="card-title"><h4>最新资料</h4><a onclick="go('docs')" class="small">更多 ›</a></div>
+      ${db.docs.filter(d => d.status === '上架').slice().sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0) || b.uploadAt.localeCompare(a.uploadAt)).slice(0, 5).map(d => `
+        <div class="lrow"><div class="ftype ft-${d.ftype}">${d.ftype.toUpperCase()}</div><div class="main"><div class="t">${esc(d.name)} ${d.isNew ? '<span class="tag bad">新</span>' : ''}</div><div class="m"><span>${esc(d.cat)} / ${esc(d.sub)}</span><span>${d.uploadAt}</span></div></div><button class="btn sm" onclick="previewDoc('${d.id}')">预览</button></div>`).join('')}
+    </div>
+  </div>
+  <div class="card"><div class="card-title"><h4>我参与的项目</h4><a onclick="go('projects')" class="small">全部 ›</a></div>
+    <div class="table-wrap"><table class="rt cards"><thead><tr><th>项目名称</th><th>类型</th><th>负责人</th><th>计划完成</th><th>状态</th></tr></thead><tbody>
+    ${myPs.slice(0, 5).map(x => `<tr><td class="first"><a class="pname" onclick="go('project','${x.id}')">${esc(x.name)}</a><div class="muted small">${x.code}</div></td><td data-l="类型">${x.type}</td><td data-l="负责人">${U(x.leader).name}</td><td data-l="计划完成">${x.planEnd}</td><td data-l="状态">${statusTag(x.status)}</td></tr>`).join('')}
+    </tbody></table></div>
+  </div>`;
+};
+
+/* ---------- 项目台账 ---------- */
+let pf = { q:'', status:'', type:'' };
+function visibleProjects(){
+  const u = me();
+  if (has('leader') || has('admin')) return db.projects;
+  if (has('manager')) return db.projects.filter(p => p.dept === u.dept || p.leader === u.id || p.members.includes(u.id));
+  return myProjects(u.id);
+}
+PAGES.projects = () => {
+  const list = visibleProjects().filter(p => (!pf.q || (p.name + p.code + U(p.leader).name).includes(pf.q)) && (!pf.status || p.status === pf.status) && (!pf.type || p.type === pf.type));
+  const scope = has('leader') || has('admin') ? '全公司项目' : has('manager') ? '本部门项目' : '我参与的项目';
+  return `
+  <div class="page-head"><div><h3>项目台账</h3><p>数据范围：${scope} · 共 ${list.length} 个</p></div>
+    ${isMgr() ? `<button class="btn primary" onclick="editProject()">${ic('plus')}新建项目</button>` : ''}</div>
+  <div class="card">
+    <div class="toolbar">
+      <div class="search">${ic('search')}<input class="input" placeholder="搜索项目名称 / 编号 / 负责人" value="${esc(pf.q)}" oninput="pf.q=this.value;rerenderKeep(this)"></div>
+      <select class="input" onchange="pf.status=this.value;router()"><option value="">全部状态</option>${['未开始','进行中','已完成','已存档','暂停'].map(s => `<option ${pf.status === s ? 'selected' : ''}>${s}</option>`).join('')}</select>
+      <select class="input" onchange="pf.type=this.value;router()"><option value="">全部类型</option>${['规划','设计','咨询','监理','测绘'].map(s => `<option ${pf.type === s ? 'selected' : ''}>${s}</option>`).join('')}</select>
+    </div>
+    <div class="table-wrap"><table class="rt cards"><thead><tr><th>项目名称 / 编号</th><th>类型</th><th>委托单位</th><th>负责人</th><th>部门</th><th>计划工期</th><th>状态</th><th></th></tr></thead><tbody>
+    ${list.map(x => `<tr>
+      <td class="first"><a class="pname" onclick="go('project','${x.id}')">${esc(x.name)}</a><div class="muted small">${x.code}</div></td>
+      <td data-l="类型">${x.type}</td><td data-l="委托单位">${esc(x.client)}</td><td data-l="负责人">${U(x.leader).name}</td><td data-l="部门">${deptName(x.dept)}</td>
+      <td data-l="计划工期" class="small">${x.start} ~ ${x.planEnd}</td><td data-l="状态">${statusTag(x.status)}</td>
+      <td data-l="操作"><a onclick="go('project','${x.id}')">详情</a></td></tr>`).join('') || `<tr><td colspan="8" class="empty">暂无项目</td></tr>`}
+    </tbody></table></div>
+  </div>`;
+};
+function rerenderKeep(el){
+  const pos = el.selectionStart, ph = el.placeholder; router();
+  const n = [...document.querySelectorAll('input')].find(i => i.placeholder === ph); if (n){ n.focus(); n.setSelectionRange(pos, pos); }
+}
+function editProject(id){
+  const p = id ? P(id) : { code:'HY-2026-0' + pad(db.projects.length + 1), name:'', type:'设计', client:'', leader:ME, members:[], dept:me().dept, start:fmtD(TODAY), planEnd:'', status:'未开始', amount:'' };
+  const staff = db.users.filter(u => u.id !== 'u9');
+  openModal(id ? '编辑项目' : '新建项目', `<div class="form-grid">
+    <label class="field"><span>项目编号 <i>*</i></span><input id="ep-code" value="${esc(p.code)}"></label>
+    <label class="field"><span>项目类型</span><select id="ep-type">${['规划','设计','咨询','监理','测绘'].map(t => `<option ${p.type === t ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
+    <label class="field span2"><span>项目名称 <i>*</i></span><input id="ep-name" value="${esc(p.name)}" placeholder="如：XX县XX河道治理工程初步设计"></label>
+    <label class="field"><span>委托单位</span><input id="ep-client" value="${esc(p.client)}"></label>
+    <label class="field"><span>合同金额（万元）</span><input id="ep-amount" type="number" value="${esc(p.amount)}"></label>
+    <label class="field"><span>项目负责人</span><select id="ep-leader">${staff.map(u => `<option value="${u.id}" ${p.leader === u.id ? 'selected' : ''}>${u.name}（${deptName(u.dept)}）</option>`).join('')}</select></label>
+    <label class="field"><span>所属部门</span><select id="ep-dept">${db.depts.map(d => `<option value="${d.id}" ${p.dept === d.id ? 'selected' : ''}>${d.name}</option>`).join('')}</select></label>
+    <label class="field"><span>开始日期</span><input id="ep-start" type="date" value="${p.start}"></label>
+    <label class="field"><span>计划完成日期 <i>*</i></span><input id="ep-end" type="date" value="${p.planEnd}"></label>
+    <div class="field span2"><span>参与人员</span><div class="btns">${staff.map(u => `<label class="tag" style="cursor:pointer"><input type="checkbox" class="ep-m" value="${u.id}" ${p.members.includes(u.id) ? 'checked' : ''}> ${u.name}</label>`).join('')}</div></div>
+  </div>`, `<button class="btn" onclick="closeModal()">取消</button><button class="btn primary" onclick="saveProject('${id || ''}')">保存</button>`);
+}
+function saveProject(id){
+  const v = k => $('#ep-' + k).value.trim();
+  if (!v('code') || !v('name') || !v('end')) return toast('请填写必填项', 'bad');
+  const data = { code:v('code'), name:v('name'), type:v('type'), client:v('client'), amount:v('amount'), leader:v('leader'), dept:v('dept'), start:v('start'), planEnd:v('end'),
+    members:[...document.querySelectorAll('.ep-m:checked')].map(i => i.value).filter(m => m !== v('leader')) };
+  if (id) Object.assign(P(id), data); else db.projects.unshift({ id:uid('p'), status:'未开始', ...data });
+  log(id ? '编辑项目' : '新建项目', data.name); save(); closeModal(); toast('项目已保存', 'good'); router();
+}
+
+/* ---------- 项目详情 ---------- */
+PAGES.project = () => {
+  const p = P(param); if (!p) return '<div class="empty">项目不存在</div>';
+  const entries = [];
+  Object.values(db.plans).forEach(pl => pl.items.forEach(it => { if (it.pid === p.id) entries.push({ ...it, uid:pl.uid, wk:pl.wk, mon:pl.mon }); }));
+  entries.sort((a, b) => b.mon.localeCompare(a.mon));
+  const hours = entries.reduce((a, b) => a + (+(b.actualDays != null ? b.actualDays : b.days) || 0), 0);
+  const isLeader = p.leader === ME, canConfirm = (has('manager') && me().dept === p.dept) || has('leader') || has('admin');
+  const sc = db.scores.find(s => s.pid === p.id);
+  return `
+  <div class="page-head"><div><a class="small" onclick="go('projects')">‹ 返回项目台账</a><h3 style="margin-top:6px">${esc(p.name)}</h3><p>${p.code} · ${statusTag(p.status)}</p></div>
+    <div class="btns">
+      ${(isLeader || isMgr()) && p.status !== '已存档' ? `<button class="btn" onclick="editProject('${p.id}')">编辑</button>` : ''}
+      ${p.status === '进行中' && (isLeader || canConfirm) ? `<button class="btn" onclick="setPStatus('${p.id}','已完成')">标记完成</button>` : ''}
+      ${p.status === '已完成' && isLeader && !p.archiveApply ? `<button class="btn primary" onclick="applyArchive('${p.id}')">申请存档</button>` : ''}
+      ${p.status === '已完成' && p.archiveApply ? (canConfirm ? `<button class="btn primary" onclick="confirmArchive('${p.id}')">确认存档</button>` : `<span class="tag warn">存档申请审核中</span>`) : ''}
+    </div></div>
+  ${p.status === '已完成' && !p.archiveApply ? `<div class="notice">${ic('info')}<div>项目已完成，成果提交后请由项目负责人<b>申请存档</b>；部门负责人确认后变为"已存档"，进入当月考评。</div></div>` : ''}
+  <div class="card"><div class="card-title"><h4>基本信息</h4></div>
+    <div class="kv">
+      <div><span>项目类型</span><b>${p.type}</b></div><div><span>委托单位</span><b>${esc(p.client)}</b></div><div><span>合同金额</span><b>${p.amount ? p.amount + ' 万元' : '—'}</b></div>
+      <div><span>项目负责人</span><b>${U(p.leader).name}</b></div><div><span>所属部门</span><b>${deptName(p.dept)}</b></div><div><span>参与人员</span><b>${p.members.map(m => U(m).name).join('、') || '—'}</b></div>
+      <div><span>开始日期</span><b>${p.start}</b></div><div><span>计划完成</span><b>${p.planEnd}</b></div><div><span>实际完成 / 存档</span><b>${p.actualEnd || '—'} / ${p.archive || '—'}</b></div>
+    </div></div>
+  <div class="grid g4" style="margin-bottom:16px">
+    <div class="stat"><div class="lb">周报记录</div><div class="v">${entries.length}<small>条</small></div></div>
+    <div class="stat"><div class="lb">累计工时</div><div class="v">${hours}<small>人·天</small></div></div>
+    <div class="stat"><div class="lb">参与人数</div><div class="v">${p.members.length + 1}<small>人</small></div></div>
+    <div class="stat"><div class="lb">考评得分</div><div class="v">${sc && sc.status === '已发布' ? scoreTotal(sc).toFixed(1) : '—'}<small>${sc ? sc.status : '未考评'}</small></div></div>
+  </div>
+  <div class="card"><div class="card-title"><h4>项目周报动态</h4><small>来自成员每周的计划和完成情况</small></div>
+    ${entries.length ? `<div class="timeline">${entries.slice(0, 12).map(e => `<div class="tl"><div class="tlh">${weekLabel(new Date(e.mon), true)} · ${U(e.uid).name}</div>
+      <div>${esc(e.content)} <span class="muted">— ${esc(e.target)}</span></div>
+      <div class="small muted">计划 ${e.days} 天${e.pct != null ? ` · 完成 <b style="color:${e.pct < 100 ? 'var(--warn)' : 'var(--good)'}">${e.pct}%</b>${e.reason ? ' · 原因：' + esc(e.reason) : ''}` : ' · 本周进行中'}</div></div>`).join('')}</div>` : '<div class="empty">暂无周报记录</div>'}
+  </div>`;
+};
+function setPStatus(id, s){ const p = P(id); p.status = s; if (s === '已完成') p.actualEnd = fmtD(TODAY); log('项目状态变更', p.name + ' → ' + s); save(); toast('项目状态已更新为：' + s, 'good'); router(); }
+function applyArchive(id){ P(id).archiveApply = true; save(); toast('存档申请已提交，等待部门负责人确认', 'good'); router(); }
+function confirmArchive(id){
+  const p = P(id); p.status = '已存档'; p.archive = fmtD(TODAY); p.archiveApply = false;
+  if (!db.scores.find(s => s.pid === id)) db.scores.push({ id:uid('s'), pid:id, month:ym(TODAY), items:null, comment:'', status:'待打分' });
+  log('确认存档', p.name); save(); toast(`已存档，已进入 ${ym(TODAY)} 月度考评清单`, 'good'); router();
+}
+
+/* ---------- 周计划填报 ---------- */
+let planDraft = null;
+const blankItem = () => ({ pid:'', content:'', target:'', days:1, note:'', pct:null, actual:'', actualDays:null, reason:'' });
+const fillSeg = k => `<div class="seg"><a class="${k === 'plan' ? 'active' : ''}" onclick="go('plan')">周一 · 本周计划</a><a class="${k === 'report' ? 'active' : ''}" onclick="go('report')">周五 · 完成情况</a></div>`;
+PAGES.plan = () => {
+  const u = me(), p = getPlan(u.id, CUR_WK);
+  const locked = p && p.reportStatus === '已提交';
+  if (!planDraft) planDraft = p ? clone(p.items) : [blankItem()];
+  const projs = myProjects(u.id).filter(x => ['进行中','已完成','未开始'].includes(x.status));
+  const opts = sel => `<option value="">请选择项目</option>${projs.map(x => `<option value="${x.id}" ${sel === x.id ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}<option value="other" ${sel === 'other' ? 'selected' : ''}>其他工作（会议/投标/培训等）</option>`;
+  const total = planDraft.reduce((a, b) => a + (+b.days || 0), 0);
+  return `
+  <div class="page-head"><div><h3>周计划填报</h3><p>${weekLabel(weekMon(0))} · 截止时间 ${db.fillRules.planDeadline}</p></div>${fillSeg('plan')}</div>
+  ${p ? `<div class="notice ${p.overdue ? 'warn' : 'good'}">${ic(p.overdue ? 'clock' : 'check')}<div>本周计划已于 <b>${fmtDT(p.submittedAt)}</b> 提交${p.overdue ? '（逾期提交，将计入考评）' : ''}。${locked ? '完成情况已提交，计划已锁定。' : '填报周五完成情况前还可以修改。'}${p.comment ? `<br>负责人点评：${esc(p.comment)}` : ''}</div></div>`
+       : `<div class="notice">${ic('info')}<div>请在每周一填写本周的工作计划，一个项目一行。系统会在 ${db.fillRules.planRemind} 自动提醒。<span class="muted">（演示环境不限制填报时间）</span></div></div>`}
+  <div class="card">
+    <div class="card-title"><h4>本周工作计划 <small>共 ${planDraft.length} 项 · 计划工时 <b id="plan-total">${total}</b> 天</small></h4>
+      ${locked ? '' : `<div class="btns"><button class="btn sm" onclick="planCarry()">${ic('refresh', 14)}带入上周未完成</button></div>`}</div>
+    ${planDraft.map((it, i) => `
+      <div class="item-card">
+        <div class="ih"><span class="item-no">事项 ${i + 1}</span>${locked || planDraft.length === 1 ? '' : `<button class="icon-btn" title="删除" onclick="planDel(${i})">${ic('trash', 16)}</button>`}</div>
+        <div class="plan-grid">
+          <label class="field"><span>关联项目 <i>*</i></span><select ${locked ? 'disabled' : ''} onchange="planDraft[${i}].pid=this.value">${opts(it.pid)}</select></label>
+          <label class="field"><span>工作内容 <i>*</i></span><input ${locked ? 'disabled' : ''} value="${esc(it.content)}" placeholder="如：水文分析计算" oninput="planDraft[${i}].content=this.value"></label>
+          <label class="field"><span>计划目标 / 成果</span><input ${locked ? 'disabled' : ''} value="${esc(it.target)}" placeholder="如：完成计算书" oninput="planDraft[${i}].target=this.value"></label>
+          <label class="field"><span>计划工时（天）<i>*</i></span><input ${locked ? 'disabled' : ''} type="number" min="0" max="7" step="0.5" value="${it.days}" oninput="planDraft[${i}].days=this.value;planSum()"></label>
+          <label class="field full"><span>备注</span><input ${locked ? 'disabled' : ''} value="${esc(it.note)}" placeholder="选填" oninput="planDraft[${i}].note=this.value"></label>
+        </div>
+      </div>`).join('')}
+    ${locked ? '' : `<button class="btn" style="width:100%;border-style:dashed" onclick="planAdd()">${ic('plus')}添加一项</button>
+    <div class="sticky-foot" style="margin-top:16px"><span class="muted small">提交后部门负责人可以看到</span><div class="btns"><button class="btn primary" onclick="planSubmit()">${p ? '保存修改' : '提交本周计划'}</button></div></div>`}
+  </div>`;
+};
+function planSum(){ const el = $('#plan-total'); if (el) el.textContent = planDraft.reduce((a, b) => a + (+b.days || 0), 0); }
+function planAdd(){ planDraft.push(blankItem()); router(); }
+function planDel(i){ planDraft.splice(i, 1); router(); }
+function planCarry(){
+  const last = getPlan(ME, weekKey(weekMon(-1)));
+  const todo = last ? last.items.filter(i => i.pct != null && i.pct < 100) : [];
+  if (!todo.length) return toast('上周没有未完成的事项');
+  planDraft = planDraft.filter(i => i.pid || i.content).concat(todo.map(i => ({ ...blankItem(), pid:i.pid, content:i.content + '（续）', target:i.target, days:i.days })));
+  toast(`已带入 ${todo.length} 项上周未完成的事项`, 'good'); router();
+}
+function planSubmit(){
+  for (const [i, it] of planDraft.entries()){
+    if (!it.pid) return toast(`事项 ${i + 1}：请选择关联项目`, 'bad');
+    if (!it.content.trim()) return toast(`事项 ${i + 1}：请填写工作内容`, 'bad');
+    if (!(+it.days > 0)) return toast(`事项 ${i + 1}：计划工时必须大于 0`, 'bad');
+  }
+  const k = ME + '|' + CUR_WK, old = db.plans[k];
+  db.plans[k] = { uid:ME, wk:CUR_WK, mon:fmtD(weekMon(0)), status:'已提交', submittedAt: old ? old.submittedAt : Date.now(), overdue: old ? old.overdue : TODAY.getDay() !== 1,
+    items:clone(planDraft), extra: old ? old.extra : [], reportStatus:'未填', reportAt:null, comment: old ? old.comment : '' };
+  log('提交周计划', CUR_WK); save(); planDraft = null;
+  toast(old ? '计划已更新' : '本周计划提交成功', 'good'); router();
+}
+
+/* ---------- 周完成情况 ---------- */
+let reportDraft = null;
+PAGES.report = () => {
+  const u = me(), p = getPlan(u.id, CUR_WK);
+  const head = `<div class="page-head"><div><h3>周完成情况填报</h3><p>${weekLabel(weekMon(0))} · 截止时间 ${db.fillRules.reportDeadline}</p></div>${fillSeg('report')}</div>`;
+  if (!p) return head + `<div class="card empty">${ic('edit', 36)}<p style="margin:12px 0">本周还没有提交计划，完成情况需要对照计划填写</p><button class="btn primary" onclick="go('plan')">先去填写本周计划</button></div>`;
+  const done = p.reportStatus === '已提交';
+  if (!reportDraft) reportDraft = { items: clone(p.items).map(i => ({ ...i, pct: i.pct == null ? 100 : i.pct, actualDays: i.actualDays == null ? i.days : i.actualDays })), extra: clone(p.extra || []) };
+  const projs = myProjects(u.id);
+  return head + `
+  ${done ? `<div class="notice good">${ic('check')}<div>完成情况已于 <b>${fmtDT(p.reportAt)}</b> 提交，本周计划完成率 <b>${planRate(p)}%</b>。</div></div>`
+         : `<div class="notice">${ic('info')}<div>系统已自动带出本周计划，请逐条填写完成比例；完成比例低于 100% 时需要填写原因。<span class="muted">（演示环境不限制填报时间）</span></div></div>`}
+  <div class="card">
+    <div class="card-title"><h4>计划事项完成情况</h4><div>本周完成率 <span class="score-big" id="rate-sum" style="font-size:22px">${Math.round(avg(reportDraft.items.map(i => +i.pct)))}%</span></div></div>
+    ${reportDraft.items.map((it, i) => `
+      <div class="item-card">
+        <div class="ih"><span class="item-no">事项 ${i + 1}</span><span class="tag">${esc(pname(it.pid))}</span></div>
+        <dl class="plan-ro"><dt>计划内容</dt><dd>${esc(it.content)}</dd><dt>计划目标</dt><dd>${esc(it.target) || '—'}</dd><dt>计划工时</dt><dd>${it.days} 天</dd></dl>
+        <div class="plan-grid">
+          <div class="field" style="grid-column:span 2"><span>完成比例 <i>*</i></span><div class="pct-row"><input type="range" min="0" max="100" step="10" value="${it.pct}" ${done ? 'disabled' : ''} oninput="repPct(${i},this.value)"><span class="pct-val" id="pv-${i}">${it.pct}%</span></div></div>
+          <label class="field"><span>实际工时（天）</span><input type="number" step="0.5" min="0" value="${it.actualDays}" ${done ? 'disabled' : ''} oninput="reportDraft.items[${i}].actualDays=this.value"></label>
+          <div></div>
+          <label class="field" style="grid-column:span 2"><span>实际完成内容</span><input value="${esc(it.actual)}" placeholder="如：已完成计算书初稿" ${done ? 'disabled' : ''} oninput="reportDraft.items[${i}].actual=this.value"></label>
+          <label class="field" style="grid-column:span 2" id="rs-${i}"><span>未完成原因 ${it.pct < 100 ? '<i>*</i>' : ''}</span><input value="${esc(it.reason)}" placeholder="完成比例低于 100% 时必填" ${done ? 'disabled' : ''} oninput="reportDraft.items[${i}].reason=this.value"></label>
+        </div>
+      </div>`).join('')}
+  </div>
+  <div class="card">
+    <div class="card-title"><h4>计划外工作 <small>本周临时增加的工作</small></h4>${done ? '' : `<button class="btn sm" onclick="reportDraft.extra.push({pid:'other',content:'',actualDays:0.5});router()">${ic('plus', 14)}添加</button>`}</div>
+    ${reportDraft.extra.length ? reportDraft.extra.map((e, i) => `<div class="item-card"><div class="plan-grid">
+      <label class="field"><span>关联项目</span><select ${done ? 'disabled' : ''} onchange="reportDraft.extra[${i}].pid=this.value">${projs.map(x => `<option value="${x.id}" ${e.pid === x.id ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}<option value="other" ${e.pid === 'other' ? 'selected' : ''}>其他工作</option></select></label>
+      <label class="field"><span>工作内容</span><input ${done ? 'disabled' : ''} value="${esc(e.content)}" placeholder="如：配合投标技术标编写" oninput="reportDraft.extra[${i}].content=this.value"></label>
+      <label class="field"><span>工时（天）</span><input ${done ? 'disabled' : ''} type="number" step="0.5" value="${e.actualDays}" oninput="reportDraft.extra[${i}].actualDays=this.value"></label>
+      <div class="field"><span>&nbsp;</span>${done ? '' : `<button class="btn danger" onclick="reportDraft.extra.splice(${i},1);router()">删除</button>`}</div></div></div>`).join('') : '<div class="muted small">无计划外工作</div>'}
+    ${done ? '' : `<div class="sticky-foot" style="margin-top:16px"><span class="muted small">附件（成果截图）：<a onclick="toast('演示：选择文件上传')">+ 上传附件</a></span><button class="btn primary" onclick="reportSubmit()">提交本周完成情况</button></div>`}
+  </div>`;
+};
+function repPct(i, v){
+  reportDraft.items[i].pct = +v; $('#pv-' + i).textContent = v + '%';
+  $('#rs-' + i).querySelector('span').innerHTML = '未完成原因 ' + (+v < 100 ? '<i>*</i>' : '');
+  $('#rate-sum').textContent = Math.round(avg(reportDraft.items.map(x => +x.pct))) + '%';
+}
+function reportSubmit(){
+  for (const [i, it] of reportDraft.items.entries()) if (it.pct < 100 && !String(it.reason).trim()) return toast(`事项 ${i + 1}：完成比例低于 100%，请填写未完成原因`, 'bad');
+  const p = getPlan(ME, CUR_WK);
+  p.items = clone(reportDraft.items); p.extra = clone(reportDraft.extra).filter(e => e.content); p.reportStatus = '已提交'; p.reportAt = Date.now();
+  log('提交周完成情况', CUR_WK); save(); reportDraft = null;
+  toast(`提交成功，本周完成率 ${planRate(p)}%`, 'good'); router();
+}
+
+/* ---------- 周报查询统计 ---------- */
+let wTab = null, wWeek = -0, wDept = '';
+PAGES.weekly = () => {
+  if (!wTab) wTab = isMgr() ? 'team' : 'mine';
+  const tabs = `<div class="tabs"><div class="tab ${wTab === 'mine' ? 'active' : ''}" onclick="wTab='mine';router()">我的周报</div>${isMgr() ? `<div class="tab ${wTab === 'team' ? 'active' : ''}" onclick="wTab='team';router()">${has('manager') && !has('leader') ? '部门' : '全公司'}填报统计</div>` : ''}</div>`;
+  const head = `<div class="page-head"><div><h3>周报查询统计</h3><p>查看历史周报、部门填报情况</p></div><button class="btn" onclick="toast('演示：已导出 Excel（按公司周报样表格式）','good')">${ic('download', 16)}导出 Excel</button></div>`;
+  if (wTab === 'mine'){
+    const mine = Object.values(db.plans).filter(p => p.uid === ME).sort((a, b) => b.mon.localeCompare(a.mon));
+    return head + tabs + `<div class="card"><div class="table-wrap"><table class="rt cards"><thead><tr><th>周次</th><th>计划事项</th><th>计划提交</th><th>完成情况</th><th>完成率</th><th>负责人点评</th><th></th></tr></thead><tbody>
+      ${mine.map(p => { const r = planRate(p); return `<tr><td class="first"><b>${weekLabel(new Date(p.mon))}</b></td><td data-l="计划事项">${p.items.length} 项</td>
+        <td data-l="计划提交">${statusTag('已提交')} ${p.overdue ? '<span class="tag warn">逾期</span>' : ''}</td><td data-l="完成情况">${statusTag(p.reportStatus)}</td>
+        <td data-l="完成率">${r != null ? `<div class="btns"><div class="progress" style="width:80px"><i style="width:${r}%"></i></div>${r}%</div>` : '—'}</td>
+        <td data-l="点评" class="small">${esc(p.comment) || '—'}</td><td data-l="操作"><a onclick="viewWeekly('${p.uid}','${p.wk}')">查看</a></td></tr>`; }).join('') || '<tr><td colspan="7" class="empty">暂无周报</td></tr>'}
+      </tbody></table></div></div>`;
+  }
+  // 团队统计
+  const allScope = has('leader') || has('admin');
+  const mon = weekMon(wWeek), wk = weekKey(mon);
+  let people = db.users.filter(u => !u.roles.includes('admin') && !u.roles.includes('leader'));
+  people = allScope ? (wDept ? people.filter(u => u.dept === wDept) : people) : people.filter(u => u.dept === me().dept);
+  const rows = people.map(u => ({ u, p:getPlan(u.id, wk) }));
+  const planned = rows.filter(r => r.p).length, reported = rows.filter(r => r.p && r.p.reportStatus === '已提交').length;
+  const overdue = rows.filter(r => r.p && r.p.overdue).length;
+  const rates = rows.map(r => r.p && planRate(r.p)).filter(x => x != null);
+  return head + tabs + `
+  <div class="toolbar">
+    <select class="input" onchange="wWeek=+this.value;router()">${[0, -1, -2, -3, -4, -5].map(n => `<option value="${n}" ${wWeek === n ? 'selected' : ''}>${weekLabel(weekMon(n))}${n === 0 ? '（本周）' : ''}</option>`).join('')}</select>
+    ${allScope ? `<select class="input" onchange="wDept=this.value;router()"><option value="">全部部门</option>${db.depts.slice(0, 2).map(d => `<option value="${d.id}" ${wDept === d.id ? 'selected' : ''}>${d.name}</option>`).join('')}</select>` : `<span class="tag blue">${deptName(me().dept)}</span>`}
+  </div>
+  <div class="grid g4" style="margin-bottom:16px">
+    <div class="stat"><div class="lb">应填人数</div><div class="v">${rows.length}<small>人</small></div></div>
+    <div class="stat"><div class="lb">计划已提交</div><div class="v">${planned}<small>/ ${rows.length}</small></div><div class="sub">逾期 ${overdue} 人</div></div>
+    <div class="stat"><div class="lb">完成情况已提交</div><div class="v">${reported}<small>/ ${rows.length}</small></div></div>
+    <div class="stat"><div class="lb">平均完成率</div><div class="v">${rates.length ? Math.round(avg(rates)) : '—'}<small>%</small></div></div>
+  </div>
+  <div class="card"><div class="card-title"><h4>人员填报明细</h4>${rows.some(r => !r.p || r.p.reportStatus !== '已提交') ? `<button class="btn sm primary" onclick="remindAll()">${ic('bell', 14)}一键提醒未填人员</button>` : ''}</div>
+    <div class="table-wrap"><table class="rt cards"><thead><tr><th>姓名</th><th>部门</th><th>周计划</th><th>完成情况</th><th>完成率</th><th>计划工时</th><th></th></tr></thead><tbody>
+    ${rows.map(({ u, p }) => { const r = p && planRate(p); return `<tr><td class="first"><div class="btns"><div class="avatar" style="width:26px;height:26px;font-size:12px">${u.name.slice(-1)}</div><b>${u.name}</b></div></td>
+      <td data-l="部门">${deptName(u.dept)}</td>
+      <td data-l="周计划">${p ? statusTag('已提交') + (p.overdue ? ' <span class="tag warn">逾期</span>' : '') : statusTag('未填')}</td>
+      <td data-l="完成情况">${p ? statusTag(p.reportStatus) : '—'}</td>
+      <td data-l="完成率">${r != null ? r + '%' : '—'}</td><td data-l="计划工时">${p ? p.items.reduce((a, b) => a + (+b.days || 0), 0) + ' 天' : '—'}</td>
+      <td data-l="操作">${p ? `<a onclick="viewWeekly('${u.id}','${wk}')">查看/点评</a>` : `<a onclick="toast('已向 ${u.name} 发送填报提醒','good')">提醒</a>`}</td></tr>`; }).join('')}
+    </tbody></table></div></div>`;
+};
+function remindAll(){ toast('已通过站内消息 / 企业微信提醒未填报人员（演示）', 'good'); }
+function viewWeekly(u, wk){
+  const p = getPlan(u, wk); const canComment = isMgr() && u !== ME;
+  openModal(`${U(u).name} · ${weekLabel(new Date(p.mon))}`, `
+    <div class="btns" style="margin-bottom:12px">${statusTag('已提交')} 计划提交于 ${fmtDT(p.submittedAt)} ${p.overdue ? '<span class="tag warn">逾期</span>' : ''} · 完成情况 ${statusTag(p.reportStatus)} ${planRate(p) != null ? `· 完成率 <b>${planRate(p)}%</b>` : ''}</div>
+    <div class="table-wrap"><table class="rt cards"><thead><tr><th>项目</th><th>工作内容</th><th>计划目标</th><th>计划工时</th><th>完成比例</th><th>实际情况 / 原因</th></tr></thead><tbody>
+    ${p.items.map(i => `<tr><td class="first">${esc(pname(i.pid))}</td><td data-l="工作内容">${esc(i.content)}</td><td data-l="计划目标">${esc(i.target) || '—'}</td><td data-l="计划工时">${i.days} 天</td>
+      <td data-l="完成比例">${i.pct != null ? `<b style="color:${i.pct < 100 ? 'var(--warn)' : 'var(--good)'}">${i.pct}%</b>` : '—'}</td><td data-l="实际/原因" class="small">${esc(i.actual) || '—'}${i.reason ? `<br><span style="color:var(--warn)">原因：${esc(i.reason)}</span>` : ''}</td></tr>`).join('')}
+    ${(p.extra || []).map(e => `<tr><td class="first">${esc(pname(e.pid))} <span class="tag">计划外</span></td><td data-l="工作内容">${esc(e.content)}</td><td data-l="计划目标">—</td><td data-l="工时">${e.actualDays} 天</td><td data-l="完成比例">—</td><td data-l="实际">—</td></tr>`).join('')}
+    </tbody></table></div>
+    ${canComment ? `<label class="field" style="margin-top:14px"><span>负责人点评</span><textarea id="wk-cmt" placeholder="选填，员工可以看到">${esc(p.comment)}</textarea></label>` : (p.comment ? `<div class="notice" style="margin-top:14px">负责人点评：${esc(p.comment)}</div>` : '')}`,
+    canComment ? `${p.reportStatus !== '已提交' ? `<button class="btn danger" onclick="rejectPlan('${u}','${wk}')">退回重填</button>` : ''}<button class="btn" onclick="closeModal()">关闭</button><button class="btn primary" onclick="saveComment('${u}','${wk}')">保存点评</button>` : `<button class="btn" onclick="closeModal()">关闭</button>`, true);
+}
+function saveComment(u, wk){ getPlan(u, wk).comment = $('#wk-cmt').value; save(); closeModal(); toast('点评已保存', 'good'); router(); }
+function rejectPlan(u, wk){ delete db.plans[u + '|' + wk]; log('退回周计划', U(u).name + ' ' + wk); save(); closeModal(); toast(`已退回 ${U(u).name} 的周计划，并通知其重新填报`, 'good'); router(); }
+
+/* ---------- 月度考评 ---------- */
+let sMonth = PREV_MONTH;
+const scoreTotal = s => s.items ? db.scoreRules.reduce((a, r) => a + (+s.items[r.key] || 0) * r.weight / 100, 0) : 0;
+const canScore = s => { const p = P(s.pid); return p && ((has('manager') && me().dept === p.dept) || has('leader')); };
+function projStats(p){
+  let hours = 0, n = 0, ov = 0; const rates = [];
+  Object.values(db.plans).forEach(pl => { let hit = false; pl.items.forEach(i => { if (i.pid === p.id){ hours += +(i.actualDays != null ? i.actualDays : i.days) || 0; n++; hit = true; if (i.pct != null) rates.push(+i.pct); } }); if (hit && pl.overdue) ov++; });
+  const planDays = Math.round((new Date(p.planEnd) - new Date(p.start)) / 864e5), actDays = p.actualEnd ? Math.round((new Date(p.actualEnd) - new Date(p.start)) / 864e5) : null;
+  return { hours, n, ov, rate: rates.length ? Math.round(avg(rates)) : null, planDays, actDays, delay: actDays != null ? actDays - planDays : null };
+}
+PAGES.score = () => {
+  const months = [0, 1, 2, 3, 4, 5].map(n => ym(new Date(TODAY.getFullYear(), TODAY.getMonth() - n, 1)));
+  const mgr = isMgr();
+  let list = db.scores.filter(s => s.month === sMonth && P(s.pid));
+  if (!has('leader') && !has('admin')) list = list.filter(s => { const p = P(s.pid); return (has('manager') && p.dept === me().dept) || p.leader === ME || p.members.includes(ME); });
+  const canPublish = has('leader') || has('admin');
+  const toPublish = list.filter(s => s.status === '已打分');
+  return `
+  <div class="page-head"><div><h3>月度考评</h3><p>每月对上月已存档的项目进行统计打分 · 打分人：部门负责人 · 审核发布：公司领导</p></div>
+    <div class="btns"><select class="input" onchange="sMonth=this.value;router()">${months.map(m => `<option ${sMonth === m ? 'selected' : ''} value="${m}">${m.replace('-', '年')}月</option>`).join('')}</select>
+    ${canPublish && toPublish.length ? `<button class="btn primary" onclick="publishAll()">审核发布（${toPublish.length}）</button>` : ''}</div></div>
+  <div class="card"><div class="card-title"><h4>考评指标</h4><small>满分 100，权重可在"系统管理 › 考评规则"中配置</small></div>
+    <div class="btns">${db.scoreRules.map(r => `<span class="tag blue" data-tip="${esc(r.desc)}">${r.name} ${r.weight}%</span>`).join('')}</div></div>
+  ${list.length ? list.map(s => {
+    const p = P(s.pid), st = projStats(p), show = s.status === '已发布' || mgr;
+    const team = [p.leader, ...p.members];
+    return `<div class="card">
+      <div class="card-title" style="align-items:flex-start"><div><a class="pname" style="font-size:15px" onclick="go('project','${p.id}')">${esc(p.name)}</a><div class="muted small" style="margin-top:4px">${p.code} · ${deptName(p.dept)} · 负责人 ${U(p.leader).name} · 存档于 ${p.archive}</div></div>
+        <div style="text-align:right">${statusTag(s.status)}${show && s.items ? `<div class="score-big">${scoreTotal(s).toFixed(1)}</div>` : ''}</div></div>
+      <div class="grid g4" style="gap:10px;margin-bottom:12px">
+        <div class="stat" style="box-shadow:none;background:#f7f9fb"><div class="lb small">计划 / 实际工期</div><div class="v" style="font-size:18px">${st.planDays} / ${st.actDays != null ? st.actDays : '—'}<small>天</small></div><div class="sub" style="color:${st.delay > 0 ? 'var(--bad)' : 'var(--good)'}">${st.delay == null ? '' : st.delay > 0 ? `延期 ${st.delay} 天` : `提前 ${-st.delay} 天`}</div></div>
+        <div class="stat" style="box-shadow:none;background:#f7f9fb"><div class="lb small">周报完成率</div><div class="v" style="font-size:18px">${st.rate != null ? st.rate : '—'}<small>%</small></div><div class="sub">${st.n} 条周报记录</div></div>
+        <div class="stat" style="box-shadow:none;background:#f7f9fb"><div class="lb small">累计工时</div><div class="v" style="font-size:18px">${st.hours}<small>人·天</small></div><div class="sub">${team.length} 人参与</div></div>
+        <div class="stat" style="box-shadow:none;background:#f7f9fb"><div class="lb small">逾期填报</div><div class="v" style="font-size:18px">${st.ov}<small>次</small></div><div class="sub">系统自动统计</div></div>
+      </div>
+      ${show && s.items ? `<div class="btns small" style="margin-bottom:8px">${db.scoreRules.map(r => `<span class="tag">${r.name}：<b>${s.items[r.key]}</b></span>`).join('')}</div>
+        <div class="small muted">评语：${esc(s.comment) || '—'} · 打分人 ${U(s.scorer).name}${s.publishedBy ? ' · 发布人 ' + U(s.publishedBy).name : ''}</div>
+        <div class="small muted" style="margin-top:6px">个人贡献分配（按工时占比）：${team.map((m, i) => `${U(m).name} ${i === 0 ? 40 : Math.round(60 / (team.length - 1))}%`).join('、')}</div>` : (!mgr ? '<div class="muted small">考评结果尚未发布</div>' : '')}
+      <div class="btns" style="margin-top:12px;justify-content:flex-end">
+        ${s.status !== '已发布' && canScore(s) ? `<button class="btn ${s.status === '待打分' ? 'primary' : ''}" onclick="scoreDlg('${s.id}')">${s.status === '待打分' ? '开始打分' : '修改打分'}</button>` : ''}
+        ${s.status === '已打分' && canPublish ? `<button class="btn good" onclick="publish('${s.id}')">审核发布</button>` : ''}
+      </div></div>`; }).join('') : `<div class="card empty">${sMonth} 没有需要考评的存档项目</div>`}`;
+};
+function scoreDlg(id){
+  const s = db.scores.find(x => x.id === id), p = P(s.pid), st = projStats(p);
+  const it = s.items || { progress:'', quality:'', workload:'', client:'' };
+  openModal('项目考评打分 · ' + esc(p.name), `
+    <div class="notice">${ic('info')}<div>参考数据：计划工期 ${st.planDays} 天，实际 ${st.actDays != null ? st.actDays : '—'} 天${st.delay > 0 ? `（延期 ${st.delay} 天）` : ''}；周报完成率 ${st.rate != null ? st.rate : '—'}%；累计工时 ${st.hours} 人·天；逾期填报 ${st.ov} 次。</div></div>
+    ${db.scoreRules.map(r => `<div class="rule-row"><div class="rn"><b>${r.name}（${r.weight}%）</b><small>${r.desc}</small></div>
+      <input type="range" min="0" max="100" value="${it[r.key] || 80}" oninput="$('#sc-${r.key}').value=this.value;scoreSum()"><input class="input" id="sc-${r.key}" type="number" min="0" max="100" value="${it[r.key] || 80}" oninput="scoreSum()"></div>`).join('')}
+    <div style="text-align:right;margin:12px 0">加权总分 <span class="score-big" id="sc-total">0</span></div>
+    <label class="field"><span>评语</span><textarea id="sc-cmt" placeholder="请填写考评意见">${esc(s.comment)}</textarea></label>`,
+    `<button class="btn" onclick="closeModal()">取消</button><button class="btn primary" onclick="saveScore('${id}')">提交打分</button>`, true);
+  scoreSum();
+}
+function scoreSum(){ $('#sc-total').textContent = db.scoreRules.reduce((a, r) => a + (+$('#sc-' + r.key).value || 0) * r.weight / 100, 0).toFixed(1); }
+function saveScore(id){
+  const s = db.scores.find(x => x.id === id); const items = {};
+  for (const r of db.scoreRules){ const v = +$('#sc-' + r.key).value; if (!(v >= 0 && v <= 100)) return toast(r.name + ' 分值须在 0~100 之间', 'bad'); items[r.key] = v; }
+  Object.assign(s, { items, comment:$('#sc-cmt').value, scorer:ME, scoredAt:Date.now(), status:'已打分' });
+  log('考评打分', P(s.pid).name); save(); closeModal(); toast('打分已提交，等待公司领导审核发布', 'good'); router();
+}
+function publish(id){ const s = db.scores.find(x => x.id === id); s.status = '已发布'; s.publishedBy = ME; log('发布考评', P(s.pid).name); save(); toast('考评结果已发布，项目成员可以查看', 'good'); router(); }
+function publishAll(){ db.scores.filter(s => s.month === sMonth && s.status === '已打分').forEach(s => { s.status = '已发布'; s.publishedBy = ME; }); save(); toast('已全部发布', 'good'); router(); }
+
+/* ---------- 年度汇总 ---------- */
+function annual(){
+  const months = Math.max(1, TODAY.getMonth());     // 已结束的月份
+  const people = db.users.filter(u => !u.roles.includes('admin') && !u.roles.includes('leader'));
+  const per = people.map(u => {
+    const r = mulberry(hash(u.id + '2026')); const ms = [];
+    for (let m = 1; m <= months; m++) ms.push(+(80 + r() * 16).toFixed(1));
+    return { u, ms, avg:+avg(ms).toFixed(1), projects:3 + Math.floor(r() * 6), hours:Math.round(months * (17 + r() * 4)), fill:Math.round(90 + r() * 10) };
+  }).sort((a, b) => b.avg - a.avg);
+  per.forEach((x, i) => x.rank = i + 1);
+  const rr = mulberry(77); const monthly = [];
+  for (let m = 1; m <= months; m++) monthly.push({ label:m + '月', value: m === months ? db.scores.filter(s => s.month === PREV_MONTH).length : 2 + Math.floor(rr() * 5) });
+  return { per, monthly, months };
+}
+function barV(data, unit){
+  const W = 640, H = 220, pl = 32, pb = 26, pt = 18, max = Math.max(...data.map(d => d.value)) || 1;
+  const step = Math.ceil(max / 4), top = step * 4, bw = Math.min(36, (W - pl) / data.length * 0.55), gap = (W - pl) / data.length;
+  const y = v => pt + (H - pt - pb) * (1 - v / top);
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img">`;
+  for (let i = 0; i <= 4; i++){ const v = step * i; s += `<line class="grid-l" x1="${pl}" x2="${W}" y1="${y(v)}" y2="${y(v)}"/><text class="axis-t" x="${pl - 6}" y="${y(v) + 4}" text-anchor="end">${v}</text>`; }
+  data.forEach((d, i) => {
+    const cx = pl + gap * i + gap / 2, x = cx - bw / 2, yy = y(d.value), h = H - pb - yy, r = Math.min(4, h);
+    s += `<g data-tip="${d.label}：<b>${d.value}</b> ${unit}"><rect class="hit" x="${pl + gap * i}" y="${pt}" width="${gap}" height="${H - pt - pb}"/>`;
+    if (h > 0) s += `<path class="bar" d="M${x},${H - pb} V${yy + r} Q${x},${yy} ${x + r},${yy} H${x + bw - r} Q${x + bw},${yy} ${x + bw},${yy + r} V${H - pb} Z"/>`;
+    s += `<text class="axis-t" x="${cx}" y="${H - 8}" text-anchor="middle">${d.label}</text></g>`;
+  });
+  return s + '</svg>';
+}
+function barH(rows, unit, meId){
+  const W = 640, rh = 30, pl = 60, pr = 46, H = rows.length * rh + 6, min = 0, max = 100;
+  const x = v => pl + (W - pl - pr) * (v - min) / (max - min);
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img">`;
+  rows.forEach((r, i) => {
+    const yy = i * rh + 6, bh = 16, xe = x(r.value), isMe = r.id === meId;
+    s += `<g data-tip="${r.label}：<b>${r.value}</b> ${unit}（第 ${i + 1} 名）"><rect class="hit" x="0" y="${yy - 4}" width="${W}" height="${rh}"/>
+      <text class="axis-t" x="${pl - 8}" y="${yy + 12}" text-anchor="end" style="${isMe ? 'fill:#1b2430;font-weight:700' : ''}">${r.label}</text>
+      <path class="bar ${isMe ? 'me' : ''}" d="M${pl},${yy} H${xe - 4} Q${xe},${yy} ${xe},${yy + 4} V${yy + bh - 4} Q${xe},${yy + bh} ${xe - 4},${yy + bh} H${pl} Z"/>
+      <text class="val-t" x="${xe + 6}" y="${yy + 12}">${r.value}</text></g>`;
+  });
+  return s + `</svg>`;
+}
+PAGES.annual = () => {
+  const A = annual(), mine = A.per.find(x => x.u.id === ME), mgr = isMgr();
+  const allArch = A.monthly.reduce((a, b) => a + b.value, 0);
+  const personal = mine ? `
+    <div class="card"><div class="card-title"><h4>我的年度汇总</h4><small>2026 年 1-${A.months} 月</small></div>
+      <div class="grid g4" style="gap:10px;margin-bottom:14px">
+        <div class="stat" style="box-shadow:none;background:#f7f9fb"><div class="lb">参与存档项目</div><div class="v">${mine.projects}<small>个</small></div></div>
+        <div class="stat" style="box-shadow:none;background:#f7f9fb"><div class="lb">累计工时</div><div class="v">${mine.hours}<small>人·天</small></div></div>
+        <div class="stat" style="box-shadow:none;background:#f7f9fb"><div class="lb">月度平均分</div><div class="v">${mine.avg}<small>分</small></div></div>
+        <div class="stat" style="box-shadow:none;background:#f7f9fb"><div class="lb">公司排名</div><div class="v">${mine.rank}<small>/ ${A.per.length}</small></div></div>
+      </div>
+      <div class="small muted" style="margin-bottom:6px">月度考评得分趋势（分）</div>
+      <div class="chart">${barV(mine.ms.map((v, i) => ({ label:(i + 1) + '月', value:v })), '分')}</div>
+    </div>` : '';
+  if (!mgr) return `<div class="page-head"><div><h3>年度汇总</h3><p>个人年度考评与工作量汇总</p></div></div>` + personal;
+  return `
+  <div class="page-head"><div><h3>年度汇总 · 2026 年</h3><p>统计范围：1-${A.months} 月已发布的考评结果（演示数据）</p></div>
+    <div class="btns"><button class="btn" onclick="toast('演示：已导出 PDF 年度报告','good')">导出 PDF</button><button class="btn primary" onclick="toast('演示：已导出 Excel 年度汇总表','good')">${ic('download', 16)}导出 Excel</button></div></div>
+  <div class="grid g4" style="margin-bottom:16px">
+    <div class="stat"><div class="lb">年度存档项目</div><div class="v">${allArch}<small>个</small></div><div class="sub">规划 / 设计 / 咨询</div></div>
+    <div class="stat"><div class="lb">项目平均得分</div><div class="v">${avg(A.per.map(x => x.avg)).toFixed(1)}<small>分</small></div></div>
+    <div class="stat"><div class="lb">按时完成率</div><div class="v">86<small>%</small></div><div class="sub">实际完成日期 ≤ 计划完成日期</div></div>
+    <div class="stat"><div class="lb">周报填报率</div><div class="v">${Math.round(avg(A.per.map(x => x.fill)))}<small>%</small></div></div>
+  </div>
+  <div class="grid g2">
+    <div class="card"><div class="card-title"><h4>每月存档项目数</h4><small>单位：个</small></div><div class="chart">${barV(A.monthly, '个')}</div></div>
+    <div class="card"><div class="card-title"><h4>个人年度平均分排名</h4><small>单位：分</small></div><div class="chart">${barH(A.per.map(x => ({ id:x.u.id, label:x.u.name, value:x.avg })), '分', ME)}</div></div>
+  </div>
+  <div class="card"><div class="card-title"><h4>个人年度汇总表</h4></div>
+    <div class="table-wrap"><table class="rt cards"><thead><tr><th>排名 · 姓名</th><th>部门</th><th class="num">存档项目</th><th class="num">累计工时</th><th class="num">周报填报率</th><th class="num">年度平均分</th></tr></thead><tbody>
+    ${A.per.map(x => `<tr><td class="first"><b>#${x.rank}</b> ${x.u.name}</td><td data-l="部门">${deptName(x.u.dept)}</td><td data-l="存档项目" class="num">${x.projects}</td><td data-l="累计工时" class="num">${x.hours} 人·天</td><td data-l="填报率" class="num">${x.fill}%</td><td data-l="平均分" class="num"><b>${x.avg}</b></td></tr>`).join('')}
+    </tbody></table></div></div>
+  ${personal}`;
+};
+
+/* ---------- 资料查询 ---------- */
+let dCat = '', dSub = '', dQ = '', dSel = new Set();
+function docAccess(id){
+  const rs = db.reqs.filter(r => r.uid === ME && r.docIds.includes(id));
+  const ok = rs.find(r => r.status === '已通过' && r.expire > Date.now() && r.downloads < r.maxDownloads);
+  if (ok) return { s:'can', r:ok };
+  if (rs.find(r => r.status === '待审批')) return { s:'pending' };
+  return { s:'none' };
+}
+PAGES.docs = () => {
+  const all = db.docs.filter(d => d.status === '上架');
+  const cats = ['相关规范','公司成果','行业资料'];
+  const list = all.filter(d => (!dCat || d.cat === dCat) && (!dSub || d.sub === dSub) && (!dQ || (d.name + d.code + d.sub).toLowerCase().includes(dQ.toLowerCase())));
+  const tree = `<div class="ct ${!dCat ? 'active' : ''}" onclick="dCat='';dSub='';router()"><span>全部资料</span><span class="muted">${all.length}</span></div>` +
+    cats.map(c => { const subs = [...new Set(all.filter(d => d.cat === c).map(d => d.sub))];
+      return `<div class="ct ${dCat === c && !dSub ? 'active' : ''}" onclick="dCat='${c}';dSub='';router()"><span>${c}</span><span class="muted">${all.filter(d => d.cat === c).length}</span></div>` +
+        (dCat === c ? subs.map(s => `<div class="ct sub ${dSub === s ? 'active' : ''}" onclick="dCat='${c}';dSub='${s}';router()"><span>${s}</span><span class="muted">${all.filter(d => d.sub === s).length}</span></div>`).join('') : ''); }).join('');
+  return `
+  <div class="page-head"><div><h3>资料查询</h3><p>浏览、预览对全体员工开放；下载需要审批 · 资料来源：公司内部网盘（定期同步）</p></div>
+    ${dSel.size ? `<button class="btn primary" onclick="applyDlg([...dSel])">${ic('download', 16)}批量申请下载（${dSel.size}）</button>` : ''}</div>
+  <div class="docs-layout">
+    <div class="card cat-tree" style="padding:10px">${tree}</div>
+    <div>
+      <div class="cat-chips"><span class="chip ${!dCat ? 'active' : ''}" onclick="dCat='';dSub='';router()">全部</span>${cats.map(c => `<span class="chip ${dCat === c ? 'active' : ''}" onclick="dCat='${c}';dSub='';router()">${c}</span>`).join('')}</div>
+      <div class="card">
+        <div class="toolbar"><div class="search" style="max-width:none">${ic('search')}<input class="input" placeholder="搜索资料名称 / 标准编号，如 SL 252、防洪" value="${esc(dQ)}" oninput="dQ=this.value;rerenderKeep(this)"></div></div>
+        <div class="muted small" style="margin-bottom:6px">${dCat || '全部资料'}${dSub ? ' / ' + dSub : ''} · 共 ${list.length} 条</div>
+        ${list.map(d => { const a = docAccess(d.id); return `
+          <div class="lrow">
+            ${a.s === 'none' ? `<input type="checkbox" ${dSel.has(d.id) ? 'checked' : ''} onchange="this.checked?dSel.add('${d.id}'):dSel.delete('${d.id}');router()" title="选择后可批量申请">` : '<span style="width:13px"></span>'}
+            <div class="ftype ft-${d.ftype}">${d.ftype.toUpperCase()}</div>
+            <div class="main"><div class="t" title="${esc(d.name)}">${d.code !== '—' ? `<span class="muted">${esc(d.code)}</span> ` : ''}${esc(d.name)} ${d.isNew ? '<span class="tag bad">新</span>' : ''}</div>
+              <div class="m">${statusTag(d.level)}<span>${d.cat} / ${d.sub}</span><span>${d.year} 年</span><span>${d.size}</span><span>${ic('eye', 12)} ${d.views}</span></div></div>
+            <div class="btns" style="flex-wrap:nowrap">
+              <button class="btn sm" onclick="previewDoc('${d.id}')">预览</button>
+              ${a.s === 'can' ? `<button class="btn sm good" onclick="downloadDoc('${d.id}','${a.r.id}')">下载</button>` : a.s === 'pending' ? `<button class="btn sm" disabled>审批中</button>` : `<button class="btn sm primary" onclick="applyDlg(['${d.id}'])">申请下载</button>`}
+            </div>
+          </div>`; }).join('') || '<div class="empty">没有找到相关资料</div>'}
+      </div>
+    </div>
+  </div>`;
+};
+function wmURI(text){
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="260" height="160"><text x="20" y="100" transform="rotate(-22 130 80)" font-size="14" fill="#000" font-family="Microsoft YaHei">${text}</text></svg>`;
+  return `url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}")`;
+}
+function previewDoc(id){
+  const d = DOC(id), u = me(); d.views++; log('预览', d.name); save();
+  const a = docAccess(id);
+  const isSpec = d.cat === '相关规范';
+  openModal('在线预览', `
+    <div class="btns" style="margin-bottom:10px">${statusTag(d.level)}<b>${esc(d.name)}</b><span class="muted small">${d.size} · ${d.ftype.toUpperCase()} · 第 1 / 86 页</span></div>
+    <div class="preview-bg"><div class="doc-paper">
+      <div class="wm" style="background-image:${wmURI(`${u.name} ${u.no} ${fmtD(TODAY)}`)}"></div>
+      ${isSpec ? `<div class="code">中华人民共和国${d.sub === '国家标准' ? '国家标准' : '水利行业标准'}</div>` : ''}
+      <h2>${esc(d.name)}</h2><div class="code">${esc(d.code)}</div>
+      <h5>1 总则</h5>
+      <p>1.0.1 为适应${isSpec ? '水利水电工程建设需要，统一技术要求' : '项目建设管理要求，规范成果编制'}，保证工程安全，合理使用建设资金，制定本${isSpec ? '标准' : '文件'}。</p>
+      <p>1.0.2 本${isSpec ? '标准' : '文件'}适用于新建、扩建、改建、加固、修复的水利水电工程。</p>
+      <p>1.0.3 ${isSpec ? '本标准的引用标准主要有下列标准……' : '本报告编制依据主要包括国家现行法律法规、技术标准及委托单位提供的基础资料。'}</p>
+      <h5>2 术语</h5>
+      <p>2.0.1 防洪标准 flood control standard：防洪保护对象要求达到的防御洪水的标准。</p>
+      <p>2.0.2 设计洪水 design flood：水利水电工程规划、设计中所指定的各种设计标准的洪水。</p>
+      <p style="color:#999;text-align:center;text-indent:0;margin-top:30px">—— 演示内容，实际为文件原文在线预览 ——</p>
+    </div></div>
+    <div class="muted small" style="margin-top:8px">预览页带有"姓名 + 工号 + 日期"水印，禁止右键另存；下载需要提交申请。</div>`,
+    `<button class="btn" onclick="closeModal()">关闭</button>${a.s === 'can' ? `<button class="btn good" onclick="downloadDoc('${id}','${a.r.id}')">下载</button>` : a.s === 'pending' ? `<button class="btn" disabled>下载审批中</button>` : `<button class="btn primary" onclick="applyDlg(['${id}'])">申请下载</button>`}`, true);
+}
+function applyDlg(ids){
+  const ds = ids.map(DOC), secret = ds.some(d => d.level === '涉密');
+  openModal('申请下载', `
+    <div class="field" style="margin-bottom:14px"><span>申请资料（${ds.length}）</span>${ds.map(d => `<div class="lrow" style="padding:8px 0"><div class="ftype ft-${d.ftype}" style="width:30px;height:36px">${d.ftype.toUpperCase()}</div><div class="main"><div class="t">${esc(d.name)}</div><div class="m">${statusTag(d.level)}<span>${d.size}</span></div></div></div>`).join('')}</div>
+    <label class="field" style="margin-bottom:14px"><span>关联项目</span><select id="ap-p"><option value="">（不关联）</option>${myProjects(ME).map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select></label>
+    <label class="field" style="margin-bottom:14px"><span>用途说明 <i>*</i></span><textarea id="ap-r" placeholder="请说明下载用途，如：XX项目设计参考"></textarea></label>
+    <div class="field"><span>审批流程</span><div class="steps"><span class="step done"><span class="sd"></span>提交申请</span><span class="step-sep"></span><span class="step"><span class="sd"></span>部门负责人审批</span>${secret ? '<span class="step-sep"></span><span class="step"><span class="sd"></span>公司领导终审（涉密资料）</span>' : ''}<span class="step-sep"></span><span class="step"><span class="sd"></span>下载（7 天内有效，最多 3 次）</span></div></div>`,
+    `<button class="btn" onclick="closeModal()">取消</button><button class="btn primary" onclick="submitApply('${ids.join(',')}')">提交申请</button>`);
+}
+function submitApply(ids){
+  const r = $('#ap-r').value.trim(); if (!r) return toast('请填写用途说明', 'bad');
+  const pid = $('#ap-p').value; const docIds = ids.split(',');
+  const secret = docIds.some(i => DOC(i).level === '涉密');
+  const nodes = [{ name:'部门负责人审批', role:'manager', status:'待审批' }];
+  if (secret) nodes.push({ name:'公司领导终审', role:'leader', status:'未开始' });
+  db.reqs.unshift({ id:uid('r'), uid:ME, docIds, purpose:(pid ? `【${P(pid).name}】` : '') + r, time:Date.now(), status:'待审批', downloads:0, maxDownloads:3, nodes });
+  log('申请下载', docIds.map(i => DOC(i).name).join('、')); save(); dSel.clear(); closeModal();
+  toast('申请已提交，审批结果会通知您', 'good'); router();
+}
+function downloadDoc(id, rid){
+  const r = db.reqs.find(x => x.id === rid), d = DOC(id);
+  r.downloads++; d.downloads++; log('下载', (d.code !== '—' ? d.code + ' ' : '') + d.name); save(); closeModal();
+  toast(`开始下载：${d.name}（剩余 ${r.maxDownloads - r.downloads} 次）`, 'good'); router();
+}
+
+/* ---------- 我的下载申请 ---------- */
+const stepsHTML = r => `<div class="steps"><span class="step done"><span class="sd"></span>提交</span>${r.nodes.map(n => `<span class="step-sep"></span><span class="step ${n.status === '通过' ? 'done' : n.status === '驳回' ? 'rej' : n.status === '待审批' ? 'cur' : ''}" ${n.by ? `data-tip="${U(n.by).name} · ${fmtDT(n.at)}${n.comment ? '<br>' + esc(n.comment) : ''}"` : ''}><span class="sd"></span>${n.name}${n.by ? '（' + U(n.by).name + '）' : ''}</span>`).join('')}</div>`;
+PAGES.myreq = () => {
+  const list = db.reqs.filter(r => r.uid === ME);
+  return `<div class="page-head"><div><h3>我的下载申请</h3><p>审批通过后 7 天内有效，每次申请最多下载 3 次</p></div><button class="btn primary" onclick="go('docs')">去资料库</button></div>
+  ${list.map(r => { const valid = r.status === '已通过' && r.expire > Date.now(); const rej = r.nodes.find(n => n.status === '驳回'); return `
+    <div class="card">
+      <div class="card-title"><div class="small muted">申请时间 ${fmtDT(r.time)}</div>${statusTag(r.status)}</div>
+      ${r.docIds.map(i => { const d = DOC(i); return `<div class="lrow"><div class="ftype ft-${d.ftype}" style="width:30px;height:36px">${d.ftype.toUpperCase()}</div><div class="main"><div class="t">${esc(d.name)}</div><div class="m">${statusTag(d.level)}<span>${d.size}</span></div></div>
+        ${valid ? (r.downloads < r.maxDownloads ? `<button class="btn sm good" onclick="downloadDoc('${d.id}','${r.id}')">下载</button>` : '<span class="tag">次数已用完</span>') : ''}</div>`; }).join('')}
+      <div class="small" style="margin:10px 0 8px">用途：${esc(r.purpose)}</div>
+      ${stepsHTML(r)}
+      ${rej ? `<div class="notice warn" style="margin:10px 0 0">驳回原因：${esc(rej.comment)}</div>` : ''}
+      ${valid ? `<div class="small muted" style="margin-top:8px">有效期至 ${fmtDT(r.expire)} · 已下载 ${r.downloads} / ${r.maxDownloads} 次</div>` : ''}
+    </div>`; }).join('') || '<div class="card empty">暂无申请记录</div>'}`;
+};
+
+/* ---------- 下载审批 ---------- */
+let aTab = 'todo', aSel = new Set();
+function canApprove(r){
+  const n = r.nodes.find(x => x.status === '待审批'); if (!n || r.status !== '待审批') return false;
+  if (n.role === 'manager') return has('manager') && U(r.uid).dept === me().dept && r.uid !== ME;
+  if (n.role === 'leader') return has('leader');
+  return false;
+}
+PAGES.approvals = () => {
+  const todo = db.reqs.filter(canApprove);
+  const done = db.reqs.filter(r => r.nodes.some(n => n.by === ME));
+  const list = aTab === 'todo' ? todo : done;
+  return `<div class="page-head"><div><h3>下载审批</h3><p>${has('leader') ? '公司领导：涉密资料终审' : '部门负责人：审批本部门员工的下载申请'}</p></div>
+    ${aTab === 'todo' && aSel.size ? `<button class="btn good" onclick="batchApprove()">批量通过（${aSel.size}）</button>` : ''}</div>
+  <div class="tabs"><div class="tab ${aTab === 'todo' ? 'active' : ''}" onclick="aTab='todo';router()">待审批 ${todo.length ? `<span class="badge">${todo.length}</span>` : ''}</div><div class="tab ${aTab === 'done' ? 'active' : ''}" onclick="aTab='done';router()">我已处理</div></div>
+  ${list.map(r => { const u = U(r.uid); const secret = r.docIds.some(i => DOC(i).level === '涉密'); return `
+    <div class="card">
+      <div class="card-title"><div class="btns">${aTab === 'todo' ? `<input type="checkbox" ${aSel.has(r.id) ? 'checked' : ''} onchange="this.checked?aSel.add('${r.id}'):aSel.delete('${r.id}');router()">` : ''}<div class="avatar" style="width:28px;height:28px;font-size:12px">${u.name.slice(-1)}</div><b>${u.name}</b><span class="muted small">${deptName(u.dept)} · ${fmtDT(r.time)}</span></div>${secret ? '<span class="tag bad">含涉密资料</span>' : statusTag(r.status)}</div>
+      ${r.docIds.map(i => { const d = DOC(i); return `<div class="lrow" style="padding:8px 0"><div class="ftype ft-${d.ftype}" style="width:30px;height:36px">${d.ftype.toUpperCase()}</div><div class="main"><div class="t">${esc(d.name)}</div><div class="m">${statusTag(d.level)}<span>${d.cat}</span><span>${d.size}</span></div></div><button class="btn sm" onclick="previewDoc('${d.id}')">预览</button></div>`; }).join('')}
+      <div class="small" style="margin:10px 0">用途：${esc(r.purpose)}</div>
+      ${stepsHTML(r)}
+      ${aTab === 'todo' ? `<div class="btns" style="justify-content:flex-end;margin-top:12px"><button class="btn danger" onclick="rejectDlg('${r.id}')">驳回</button><button class="btn good" onclick="approve('${r.id}')">通过</button></div>` : ''}
+    </div>`; }).join('') || `<div class="card empty">${aTab === 'todo' ? '没有待审批的申请' : '暂无记录'}</div>`}`;
+};
+function approve(id, silent){
+  const r = db.reqs.find(x => x.id === id), i = r.nodes.findIndex(n => n.status === '待审批');
+  Object.assign(r.nodes[i], { status:'通过', by:ME, at:Date.now(), comment:'同意' });
+  if (r.nodes[i + 1]){ r.nodes[i + 1].status = '待审批'; }
+  else { r.status = '已通过'; r.expire = Date.now() + 7 * 864e5; }
+  log('审批通过', U(r.uid).name + ' 的下载申请'); save(); aSel.delete(id);
+  if (!silent){ toast(r.status === '已通过' ? '已通过，申请人可以下载' : '已通过，已转公司领导终审', 'good'); router(); }
+}
+function batchApprove(){ const n = aSel.size; [...aSel].forEach(id => approve(id, true)); toast(`已批量通过 ${n} 条申请`, 'good'); router(); }
+function rejectDlg(id){
+  openModal('驳回申请', `<label class="field"><span>驳回原因 <i>*</i></span><textarea id="rj-r" placeholder="申请人可以看到驳回原因"></textarea></label>
+    <div class="btns" style="margin-top:10px">${['用途不明确，请说明具体项目','该资料涉密，暂不提供下载','请直接在线预览查阅'].map(t => `<span class="chip" onclick="$('#rj-r').value='${t}'">${t}</span>`).join('')}</div>`,
+    `<button class="btn" onclick="closeModal()">取消</button><button class="btn danger" onclick="doReject('${id}')">确认驳回</button>`);
+}
+function doReject(id){
+  const c = $('#rj-r').value.trim(); if (!c) return toast('请填写驳回原因', 'bad');
+  const r = db.reqs.find(x => x.id === id), n = r.nodes.find(x => x.status === '待审批');
+  Object.assign(n, { status:'驳回', by:ME, at:Date.now(), comment:c }); r.status = '已驳回';
+  log('审批驳回', U(r.uid).name + ' 的下载申请'); save(); closeModal(); toast('已驳回，已通知申请人'); router();
+}
+
+/* ---------- 资料维护 ---------- */
+let daTab = 'list';
+PAGES.docadmin = () => {
+  const tabs = `<div class="tabs"><div class="tab ${daTab === 'list' ? 'active' : ''}" onclick="daTab='list';router()">资料列表</div><div class="tab ${daTab === 'log' ? 'active' : ''}" onclick="daTab='log';router()">访问 / 下载日志</div></div>`;
+  const head = `<div class="page-head"><div><h3>资料维护</h3><p>网盘目录：\\\\NAS01\\资料库 · 上次同步 ${fmtDT(db.lastSync || TODAY.getTime() - 864e5)}</p></div>
+    <div class="btns"><button class="btn" id="sync-btn" onclick="syncNAS()">${ic('refresh', 16)}同步网盘</button><button class="btn primary" onclick="uploadDlg()">${ic('upload', 16)}上传资料</button></div></div>`;
+  if (daTab === 'log') return head + tabs + `<div class="card"><div class="table-wrap"><table class="rt cards"><thead><tr><th>时间</th><th>人员</th><th>操作</th><th>对象</th><th>IP</th></tr></thead><tbody>
+    ${db.logs.filter(l => ['下载','预览','申请下载','上传资料','审批通过','审批驳回'].includes(l.a)).slice(0, 50).map(l => `<tr><td class="first">${fmtDT(l.t)}</td><td data-l="人员">${U(l.uid).name}</td><td data-l="操作">${l.a}</td><td data-l="对象">${esc(l.o)}</td><td data-l="IP" class="muted">192.168.1.${(hash(l.uid) & 127) + 20}</td></tr>`).join('')}
+    </tbody></table></div></div>`;
+  return head + tabs + `<div class="card"><div class="table-wrap"><table class="rt cards"><thead><tr><th>资料名称</th><th>分类</th><th>密级</th><th>审批级别</th><th class="num">浏览</th><th class="num">下载</th><th>状态</th><th>操作</th></tr></thead><tbody>
+    ${db.docs.map(d => `<tr><td class="first"><b>${esc(d.name)}</b><div class="muted small">${esc(d.code)} · ${d.uploadAt}</div></td><td data-l="分类">${d.cat} / ${d.sub}</td><td data-l="密级">${statusTag(d.level)}</td>
+      <td data-l="审批级别" class="small">${d.level === '涉密' ? '部门 + 领导' : '部门负责人'}</td><td data-l="浏览" class="num">${d.views}</td><td data-l="下载" class="num">${d.downloads}</td><td data-l="状态">${statusTag(d.status)}</td>
+      <td data-l="操作"><div class="btns"><a onclick="uploadDlg('${d.id}')">编辑</a><a onclick="toast('演示：选择新版本文件替换')">更新版本</a><a onclick="toggleDoc('${d.id}')">${d.status === '上架' ? '下架' : '上架'}</a></div></td></tr>`).join('')}
+    </tbody></table></div></div>`;
+};
+function toggleDoc(id){ const d = DOC(id); d.status = d.status === '上架' ? '下架' : '上架'; save(); toast(`已${d.status}：${d.name}`, 'good'); router(); }
+function uploadDlg(id){
+  const d = id ? DOC(id) : { name:'', code:'', cat:'相关规范', sub:'', year:TODAY.getFullYear(), level:'公开' };
+  openModal(id ? '编辑资料' : '上传资料', `<div class="form-grid">
+    ${id ? '' : `<label class="field span2"><span>选择文件 <i>*</i></span><input type="file" id="up-f"></label>`}
+    <label class="field span2"><span>资料名称 <i>*</i></span><input id="up-n" value="${esc(d.name)}"></label>
+    <label class="field"><span>编号 / 标准号</span><input id="up-c" value="${esc(d.code)}" placeholder="如 SL 252-2017"></label>
+    <label class="field"><span>年份</span><input id="up-y" type="number" value="${d.year}"></label>
+    <label class="field"><span>一级分类</span><select id="up-cat">${['相关规范','公司成果','行业资料'].map(c => `<option ${d.cat === c ? 'selected' : ''}>${c}</option>`).join('')}</select></label>
+    <label class="field"><span>二级分类</span><input id="up-sub" value="${esc(d.sub)}" placeholder="如 水利行业标准"></label>
+    <label class="field span2"><span>密级</span><select id="up-l">${['公开','内部','涉密'].map(c => `<option ${d.level === c ? 'selected' : ''}>${c}</option>`).join('')}</select></label>
+    <div class="notice span2" style="margin:0">${ic('info')}<div>公开 / 内部资料：部门负责人审批；涉密资料：部门负责人 + 公司领导两级审批。</div></div></div>`,
+    `<button class="btn" onclick="closeModal()">取消</button><button class="btn primary" onclick="saveDoc('${id || ''}')">保存</button>`);
+}
+function saveDoc(id){
+  const n = $('#up-n').value.trim(); if (!n) return toast('请填写资料名称', 'bad');
+  const f = $('#up-f'); if (!id && f && !f.files.length && !confirm('演示环境：未选择文件，是否以模拟文件继续？')) return;
+  const data = { name:n, code:$('#up-c').value || '—', year:+$('#up-y').value, cat:$('#up-cat').value, sub:$('#up-sub').value || '其他', level:$('#up-l').value };
+  if (id) Object.assign(DOC(id), data);
+  else { const ext = f && f.files[0] ? (f.files[0].name.split('.').pop() || 'pdf').toLowerCase() : 'pdf';
+    db.docs.unshift({ id:uid('doc'), ...data, ftype:['pdf','docx','dwg','xlsx'].includes(ext) ? ext : 'pdf', size:f && f.files[0] ? (f.files[0].size / 1048576).toFixed(1) + ' MB' : '1.0 MB', views:0, downloads:0, status:'上架', uploadAt:fmtD(TODAY), uploader:ME, isNew:true }); log('上传资料', n); }
+  save(); closeModal(); toast('资料已保存', 'good'); router();
+}
+function syncNAS(){
+  const b = $('#sync-btn'); b.disabled = true; b.innerHTML = '正在扫描 \\\\NAS01\\资料库 …';
+  setTimeout(() => {
+    const add = [
+      { name:'水利水电工程施工组织设计规范', code:'SL 303-2017', cat:'相关规范', sub:'水利行业标准', year:2017, level:'公开', ftype:'pdf', size:'4.1 MB' },
+      { name:'翠屏水库扩建工程竣工验收资料', code:'HY-2024-007', cat:'公司成果', sub:'设计报告', year:2024, level:'内部', ftype:'zip', size:'210 MB' }
+    ].filter(a => !db.docs.find(d => d.code === a.code && d.name === a.name));
+    add.forEach(a => db.docs.unshift({ id:uid('doc'), ...a, views:0, downloads:0, status:'上架', uploadAt:fmtD(TODAY), uploader:ME, isNew:true }));
+    db.lastSync = Date.now(); save();
+    toast(add.length ? `同步完成：新增 ${add.length} 个文件，更新 0 个` : '同步完成：没有新文件', 'good'); router();
+  }, 1200);
+}
+
+/* ---------- 系统管理 ---------- */
+let sysTab = 'users';
+PAGES.system = () => {
+  const tabs = `<div class="tabs">${[['users','用户管理'],['depts','部门管理'],['rules','考评规则'],['fill','填报规则'],['logs','操作日志']].map(([k, t]) => `<div class="tab ${sysTab === k ? 'active' : ''}" onclick="sysTab='${k}';router()">${t}</div>`).join('')}</div>`;
+  const head = `<div class="page-head"><div><h3>系统管理</h3><p>账号、权限与系统参数</p></div><button class="btn danger" onclick="resetDemo()">重置演示数据</button></div>`;
+  let body = '';
+  if (sysTab === 'users') body = `<div class="card"><div class="toolbar"><button class="btn primary" onclick="userDlg()">${ic('plus', 16)}新增用户</button><button class="btn" onclick="toast('演示：下载导入模板 / 批量导入 Excel')">批量导入</button></div>
+    <div class="table-wrap"><table class="rt cards"><thead><tr><th>姓名</th><th>账号 / 工号</th><th>部门</th><th>职务</th><th>角色</th><th>状态</th><th>操作</th></tr></thead><tbody>
+    ${db.users.map(u => `<tr><td class="first"><b>${u.name}</b></td><td data-l="账号">${u.account} / ${u.no}</td><td data-l="部门">${deptName(u.dept)}</td><td data-l="职务">${u.title}</td>
+      <td data-l="角色">${u.roles.map(r => `<span class="tag ${r === 'staff' ? '' : 'blue'}">${ROLE_NAME[r]}</span>`).join(' ')}</td><td data-l="状态">${statusTag(u.status)}</td>
+      <td data-l="操作"><div class="btns"><a onclick="userDlg('${u.id}')">编辑</a><a onclick="resetPwd('${u.id}')">重置密码</a>${u.id !== ME ? `<a onclick="toggleUser('${u.id}')">${u.status === '正常' ? '停用' : '启用'}</a>` : ''}</div></td></tr>`).join('')}
+    </tbody></table></div></div>`;
+  if (sysTab === 'depts') body = `<div class="card">${db.depts.map(d => `<div class="lrow"><div class="ti blue todo" style="border:none;padding:0">${ic('users')}</div><div class="main"><div class="t">${d.name}</div><div class="m">${db.users.filter(u => u.dept === d.id).length} 人 · 负责人 ${db.users.filter(u => u.dept === d.id && (u.roles.includes('manager') || u.roles.includes('leader'))).map(u => u.name).join('、') || '—'}</div></div><a onclick="toast('演示：编辑部门')">编辑</a></div>`).join('')}</div>`;
+  if (sysTab === 'rules') body = `<div class="card"><div class="card-title"><h4>月度考评指标与权重</h4><small>权重合计必须为 100%</small></div>
+    ${db.scoreRules.map((r, i) => `<div class="rule-row"><div class="rn"><b>${r.name}</b><small>${r.desc}</small></div><input type="range" min="0" max="100" step="5" value="${r.weight}" oninput="$('#rw-${i}').value=this.value;ruleSum()"><input class="input" id="rw-${i}" type="number" value="${r.weight}" oninput="ruleSum()"></div>`).join('')}
+    <div class="btns" style="justify-content:space-between;margin-top:14px"><span>权重合计：<b id="rw-sum">100</b>%</span><button class="btn primary" onclick="saveRules()">保存</button></div></div>`;
+  if (sysTab === 'fill') body = `<div class="card"><div class="form-grid">${[['planRemind','周计划提醒时间'],['planDeadline','周计划截止时间'],['reportRemind','完成情况提醒时间'],['reportDeadline','完成情况截止时间'],['overdueScore','逾期处理规则'],['holiday','节假日规则']].map(([k, t]) => `<label class="field"><span>${t}</span><input id="fr-${k}" value="${esc(db.fillRules[k])}"></label>`).join('')}
+    <div class="field span2"><span>提醒渠道</span><div class="btns"><label class="tag"><input type="checkbox" checked> 站内消息</label><label class="tag"><input type="checkbox"> 企业微信</label><label class="tag"><input type="checkbox"> 短信</label></div></div></div>
+    <div style="text-align:right;margin-top:14px"><button class="btn primary" onclick="saveFill()">保存</button></div></div>`;
+  if (sysTab === 'logs') body = `<div class="card"><div class="table-wrap"><table class="rt cards"><thead><tr><th>时间</th><th>人员</th><th>操作</th><th>对象</th></tr></thead><tbody>
+    ${db.logs.slice(0, 80).map(l => `<tr><td class="first">${fmtDT(l.t)}</td><td data-l="人员">${U(l.uid).name}</td><td data-l="操作">${l.a}</td><td data-l="对象">${esc(l.o)}</td></tr>`).join('')}</tbody></table></div></div>`;
+  return head + tabs + body;
+};
+function ruleSum(){ const s = db.scoreRules.reduce((a, r, i) => a + (+$('#rw-' + i).value || 0), 0); $('#rw-sum').textContent = s; $('#rw-sum').style.color = s === 100 ? '' : 'var(--bad)'; return s; }
+function saveRules(){ if (ruleSum() !== 100) return toast('权重合计必须为 100%', 'bad'); db.scoreRules.forEach((r, i) => r.weight = +$('#rw-' + i).value); log('修改考评规则', '权重'); save(); toast('考评规则已保存', 'good'); }
+function saveFill(){ Object.keys(db.fillRules).forEach(k => db.fillRules[k] = $('#fr-' + k).value); save(); toast('填报规则已保存', 'good'); }
+function resetPwd(id){ U(id).pwd = '123456'; log('重置密码', U(id).name); save(); toast(`已将 ${U(id).name} 的密码重置为初始密码，首次登录需修改`, 'good'); }
+function toggleUser(id){ const u = U(id); u.status = u.status === '正常' ? '停用' : '正常'; log(u.status + '账号', u.name); save(); toast(`已${u.status}：${u.name}`, 'good'); router(); }
+function userDlg(id){
+  const u = id ? U(id) : { name:'', account:'', no:'', dept:'d1', title:'', roles:['staff'] };
+  openModal(id ? '编辑用户' : '新增用户', `<div class="form-grid">
+    <label class="field"><span>姓名 <i>*</i></span><input id="us-n" value="${esc(u.name)}"></label>
+    <label class="field"><span>工号 <i>*</i></span><input id="us-no" value="${esc(u.no)}"></label>
+    <label class="field"><span>登录账号 <i>*</i></span><input id="us-a" value="${esc(u.account)}"></label>
+    <label class="field"><span>职务</span><input id="us-t" value="${esc(u.title)}"></label>
+    <label class="field span2"><span>部门</span><select id="us-d">${db.depts.map(d => `<option value="${d.id}" ${u.dept === d.id ? 'selected' : ''}>${d.name}</option>`).join('')}</select></label>
+    <div class="field span2"><span>角色（可多选）</span><div class="btns">${Object.entries(ROLE_NAME).map(([k, v]) => `<label class="tag" style="cursor:pointer"><input type="checkbox" class="us-r" value="${k}" ${u.roles.includes(k) ? 'checked' : ''} ${k === 'staff' ? 'disabled' : ''}> ${v}</label>`).join('')}</div></div>
+    ${id ? '' : '<div class="notice span2" style="margin:0">初始密码为 123456，用户首次登录时需要修改。</div>'}</div>`,
+    `<button class="btn" onclick="closeModal()">取消</button><button class="btn primary" onclick="saveUser('${id || ''}')">保存</button>`);
+}
+function saveUser(id){
+  const n = $('#us-n').value.trim(), a = $('#us-a').value.trim(), no = $('#us-no').value.trim();
+  if (!n || !a || !no) return toast('请填写必填项', 'bad');
+  if (db.users.find(x => x.account === a && x.id !== id)) return toast('登录账号已存在', 'bad');
+  const data = { name:n, account:a, no, title:$('#us-t').value, dept:$('#us-d').value, roles:['staff', ...[...document.querySelectorAll('.us-r:checked')].map(i => i.value).filter(r => r !== 'staff')] };
+  if (id) Object.assign(U(id), data); else db.users.push({ id:uid('u'), ...data, pwd:'123456', status:'正常' });
+  log(id ? '编辑用户' : '新增用户', n); save(); closeModal(); toast('用户已保存', 'good'); router();
+}
+
+/* ---------- 我的（手机端） ---------- */
+PAGES.more = () => {
+  const u = me(), c = counts();
+  return `<div class="card" style="display:flex;align-items:center;gap:14px"><div class="avatar" style="width:52px;height:52px;font-size:20px">${u.name.slice(-1)}</div>
+    <div style="flex:1"><b style="font-size:17px">${u.name}</b><div class="muted small" style="margin-top:4px">${u.no} · ${deptName(u.dept)} · ${u.title}</div><div style="margin-top:6px">${u.roles.map(r => `<span class="tag ${r === 'staff' ? '' : 'blue'}">${ROLE_NAME[r]}</span>`).join(' ')}</div></div></div>
+  <div class="card more-list" style="padding:4px 12px">
+    ${MENU.flatMap(g => g.items).filter(visible).filter(i => i.k !== 'home').map(i => `<div class="nav-item" onclick="go('${i.k}')">${ic(i.i)}<span>${i.t}</span>${c[i.k] ? `<span class="badge">${c[i.k]}</span>` : '<span style="margin-left:auto" class="muted">›</span>'}</div>`).join('')}
+  </div>
+  <div class="card more-list" style="padding:4px 12px">
+    <div class="nav-item" onclick="changePwd()">${ic('lock')}<span>修改密码</span><span style="margin-left:auto" class="muted">›</span></div>
+    <div class="nav-item"><span style="display:flex;align-items:center;gap:10px">${ic('users')}演示切换账号</span><select class="input" style="margin-left:auto;width:auto;height:30px" onchange="switchUser(this.value)">${DEMO_ACCS.map(a => `<option value="${a.id}" ${a.id === ME ? 'selected' : ''}>${U(a.id).name}（${a.r}）</option>`).join('')}</select></div>
+    <div class="nav-item" onclick="resetDemo()">${ic('refresh')}<span>重置演示数据</span></div>
+    <div class="nav-item" onclick="logout()" style="color:var(--bad)">${ic('logout')}<span>退出登录</span></div>
+  </div>`;
+};
+
+/* ---------------- 启动 ---------------- */
+window.onerror = m => toast('脚本错误：' + m, 'bad');
+const QS = new URLSearchParams(location.search);          // 演示用：?as=u2 直接以指定账号登录
+if (QS.get('as') && db.users.find(u => u.id === QS.get('as'))){ ME = QS.get('as'); sessionStorage.setItem('hy_me', ME); }
+$('#login-logo').innerHTML = DROP; $('#side-logo').innerHTML = DROP;
+if (!location.hash) location.hash = '#/home';
+router();
+</script>
+</body>
+</html>

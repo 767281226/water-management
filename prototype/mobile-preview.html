@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>宏禹水利管理软件 · 手机端预览</title>
+<style>
+  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;gap:48px;background:#e9edf3;font-family:"Microsoft YaHei",sans-serif;flex-wrap:wrap;padding:30px;box-sizing:border-box}
+  .phone{width:390px;height:844px;border-radius:52px;background:#111;padding:14px;box-shadow:0 30px 80px rgba(0,0,0,.3);position:relative}
+  .phone:before{content:"";position:absolute;top:22px;left:50%;transform:translateX(-50%);width:110px;height:30px;border-radius:16px;background:#111;z-index:2}
+  iframe{width:100%;height:100%;border:0;border-radius:40px;background:#fff}
+  .side{max-width:320px;color:#1b2430}
+  .side h2{margin:0 0 8px}.side p{color:#5a6577;line-height:1.8;font-size:14px}
+  .side a{display:inline-block;margin:4px 6px 4px 0;padding:8px 14px;border-radius:8px;background:#2a78d6;color:#fff;text-decoration:none;font-size:13px}
+  .side a.o{background:#fff;color:#2a78d6;border:1px solid #2a78d6}
+</style>
+</head>
+<body>
+  <div class="phone"><iframe id="f" src="index.html"></iframe></div>
+  <div class="side">
+    <h2>手机端预览</h2>
+    <p>左边是员工在手机浏览器 / 企业微信中打开系统的效果，和电脑端共用一套账号和数据。</p>
+    <p>快速切换演示账号：</p>
+    <a onclick="f.src='index.html?as=u1#/home'">张三 · 员工</a>
+    <a onclick="f.src='index.html?as=u2#/home'">李四 · 部门负责人</a>
+    <a onclick="f.src='index.html?as=u6#/home'">陈总 · 公司领导</a>
+    <a class="o" href="index.html" target="_blank">打开电脑端</a>
+  </div>
+</body>
+</html>
