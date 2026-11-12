@@ -74,6 +74,7 @@ export interface UserOption {
   id: number
   realName: string
   employeeNo: string
+  deptId: number | null
   deptName: string | null
 }
 

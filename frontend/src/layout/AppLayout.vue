@@ -31,7 +31,7 @@ const menus = computed(() =>
   )
 )
 const openeds = computed(() =>
-  menus.value.filter((m): m is MenuGroup => isGroup(m) && m.children.some((c) => c.path === route.path)).map((m) => m.title)
+  menus.value.filter((m): m is MenuGroup => isGroup(m) && m.children.some((c) => c.path === (route.meta.menu || route.path))).map((m) => m.title)
 )
 const asGroup = (m: MenuItem | MenuGroup) => m as MenuGroup
 const asItem = (m: MenuItem | MenuGroup) => m as MenuItem
@@ -63,7 +63,7 @@ async function onCommand(cmd: string) {
       </div>
       <el-scrollbar class="menu-scroll">
         <el-menu
-          :default-active="route.path"
+          :default-active="route.meta.menu || route.path"
           :default-openeds="openeds"
           :collapse="collapsed && !isMobile"
           :collapse-transition="false"

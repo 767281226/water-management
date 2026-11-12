@@ -44,7 +44,7 @@ public final class UserDtos {
             String remark) {
     }
 
-    public record UserOption(Long id, String realName, String employeeNo, String deptName) {
+    public record UserOption(Long id, String realName, String employeeNo, Long deptId, String deptName) {
     }
 
     public record ResetPasswordResult(String password) {

@@ -97,6 +97,32 @@ public abstract class IntegrationTestBase {
         return r.path("data").asLong();
     }
 
+    /** 已激活（改过初始密码）的测试用户 */
+    protected record TestUser(long id, String token) {
+    }
+
+    private static int seq = 0;
+
+    /** 新建用户并完成首次改密，返回 ID 和令牌。账号自动加序号避免重复。 */
+    protected TestUser activeUser(String admin, String name, long deptId, String... roleCodes) throws Exception {
+        int n = ++seq;
+        String username = "u" + n + "_" + System.nanoTime() % 100000;
+        StringBuilder roles = new StringBuilder();
+        for (String c : roleCodes) {
+            roles.append(roles.isEmpty() ? "" : ",").append(roleId(admin, c));
+        }
+        JsonNode r = call(post("/api/system/users"), admin, """
+                {"username":"%s","employeeNo":"T%s","realName":"%s","deptId":%d,"roleIds":[%s]}
+                """.formatted(username, username, name, deptId, roles));
+        if (r.path("code").asInt() != 0) {
+            throw new AssertionError(r.toString());
+        }
+        String t = login(username, "Hy123456");
+        String token = call(put("/api/auth/password"), t, "{\"oldPassword\":\"Hy123456\",\"newPassword\":\"Test2026a\"}")
+                .path("data").path("token").asString();
+        return new TestUser(r.path("data").asLong(), token);
+    }
+
     protected long roleId(String admin, String code) throws Exception {
         for (JsonNode role : call(get("/api/system/roles"), admin, null).path("data")) {
             if (role.path("code").asString().equals(code)) {

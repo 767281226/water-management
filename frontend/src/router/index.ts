@@ -7,6 +7,8 @@ declare module 'vue-router' {
     title?: string
     perm?: string
     public?: boolean
+    /** 高亮的菜单（详情页等非菜单页面） */
+    menu?: string
   }
 }
 
@@ -24,6 +26,11 @@ const routes: RouteRecordRaw[] = [
     children: [
       { path: '', redirect: '/dashboard' },
       ...menuRoutes,
+      {
+        path: 'project/ledger/:id(\\d+)',
+        component: () => import('@/views/project/ProjectDetailView.vue'),
+        meta: { title: '项目详情', perm: 'project:ledger', menu: '/project/ledger' }
+      },
       { path: 'profile', component: () => import('@/views/profile/ProfileView.vue'), meta: { title: '个人中心' } },
       { path: '403', component: () => import('@/views/error/ForbiddenView.vue'), meta: { title: '无权访问' } }
     ]

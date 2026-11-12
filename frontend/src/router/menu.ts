@@ -25,10 +25,10 @@ export const MENUS: (MenuItem | MenuGroup)[] = [
     icon: 'Folder',
     perm: 'project',
     children: [
-      { path: '/project/ledger', title: '项目台账', icon: 'Files', perm: 'project:ledger' },
-      { path: '/weekly/plan', title: '周计划填报', icon: 'EditPen', perm: 'weekly:plan' },
-      { path: '/weekly/report', title: '周完成情况', icon: 'Finished', perm: 'weekly:report' },
-      { path: '/weekly/stat', title: '周报查询统计', icon: 'List', perm: 'weekly:stat' },
+      { path: '/project/ledger', title: '项目台账', icon: 'Files', perm: 'project:ledger', component: () => import('@/views/project/ProjectLedgerView.vue') },
+      { path: '/weekly/plan', title: '周计划填报', icon: 'EditPen', perm: 'weekly:plan', component: () => import('@/views/weekly/WeeklyPlanView.vue') },
+      { path: '/weekly/report', title: '周完成情况', icon: 'Finished', perm: 'weekly:report', component: () => import('@/views/weekly/WeeklyReportView.vue') },
+      { path: '/weekly/stat', title: '周报查询统计', icon: 'List', perm: 'weekly:stat', component: () => import('@/views/weekly/WeeklyStatView.vue') },
       { path: '/score', title: '月度考评', icon: 'Star', perm: 'score' },
       { path: '/annual', title: '年度汇总', icon: 'TrendCharts', perm: 'annual' }
     ]

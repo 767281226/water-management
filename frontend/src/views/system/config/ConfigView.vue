@@ -11,6 +11,7 @@ const tab = ref('score')
 const rules = ref<ScoreRule[]>([])
 const fill = ref<ConfigItem[]>([])
 const security = ref<ConfigItem[]>([])
+const project = ref<ConfigItem[]>([])
 const saving = ref(false)
 
 const weightSum = computed(() => rules.value.filter((r) => r.enabled).reduce((s, r) => s + (r.weight || 0), 0))
@@ -22,10 +23,11 @@ const CHANNELS = [
 ]
 
 async function load() {
-  ;[rules.value, fill.value, security.value] = await Promise.all([
+  ;[rules.value, fill.value, security.value, project.value] = await Promise.all([
     configApi.scoreRules(),
     configApi.list('fill'),
-    configApi.list('security')
+    configApi.list('security'),
+    configApi.list('project')
   ])
 }
 
@@ -121,6 +123,18 @@ onMounted(load)
             </el-form-item>
           </el-form>
           <el-alert type="warning" :closable="false" show-icon title="填报提醒、逾期判定将在周报模块上线后按此规则执行。" />
+        </el-tab-pane>
+
+        <el-tab-pane label="项目设置" name="project">
+          <el-form label-width="150px" class="cfg-form">
+            <el-form-item v-for="c in project" :key="c.key" :label="c.name">
+              <el-input v-model="c.value" :disabled="!canEdit" maxlength="200" />
+              <div class="hint">{{ c.remark }}</div>
+            </el-form-item>
+            <el-form-item v-if="canEdit">
+              <el-button type="primary" :loading="saving" @click="saveConfigs(project)">保存</el-button>
+            </el-form-item>
+          </el-form>
         </el-tab-pane>
 
         <el-tab-pane label="安全设置" name="security">

@@ -79,6 +79,22 @@ public class ConfigService {
             case "security.init-password" -> PasswordPolicy.check(v);
             case "security.login.max-fail" -> requireRange(c, v, 1, 20);
             case "security.login.lock-minutes" -> requireRange(c, v, 1, 1440);
+            case "fill.plan.deadline", "fill.report.deadline" -> {
+                if (!v.matches("^(下)?周[一二三四五六日天]\\s*\\d{1,2}[:：][0-5]\\d$")) {
+                    throw new BizException(c.getName() + "格式应为「周X HH:mm」或「下周X HH:mm」，例如：周一 23:59");
+                }
+            }
+            case "project.types" -> {
+                long n = java.util.Arrays.stream(v.split("[,，]")).map(String::trim).filter(s -> !s.isEmpty()).count();
+                if (n == 0) {
+                    throw new BizException("至少需要一个项目类型");
+                }
+            }
+            case "project.code-prefix" -> {
+                if (!v.matches("^[A-Za-z0-9]{1,10}$")) {
+                    throw new BizException("项目编号前缀为 1~10 位字母或数字");
+                }
+            }
             case "fill.notify.channels" -> {
                 for (String ch : v.split(",")) {
                     if (!NOTIFY_CHANNELS.contains(ch.trim())) {

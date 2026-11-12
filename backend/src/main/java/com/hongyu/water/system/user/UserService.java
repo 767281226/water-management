@@ -100,7 +100,7 @@ public class UserService {
     public List<UserOption> options() {
         Map<Long, String> deptNames = deptService.nameMap();
         return userRepo.findByDeletedFalseAndStatusOrderByIdAsc(UserStatus.ENABLED).stream()
-                .map(u -> new UserOption(u.getId(), u.getRealName(), u.getEmployeeNo(), deptNames.get(u.getDeptId())))
+                .map(u -> new UserOption(u.getId(), u.getRealName(), u.getEmployeeNo(), u.getDeptId(), deptNames.get(u.getDeptId())))
                 .toList();
     }
 
