@@ -1,35 +1,139 @@
-# 宏禹水利管理软件 —— 需求确认材料
+# 宏禹水利管理软件
 
-| 文件 | 说明 |
+公司内部使用的项目管理与资料管理系统：周计划 / 周完成情况填报、月度考评、年度汇总，以及内部资料查询、预览和下载审批。
+
+## 目录结构
+
+| 目录 | 说明 |
 |---|---|
-| `docs/宏禹水利管理软件-需求规格说明书V0.1.docx` | 需求规格说明书（Word，发给客户用） |
-| `docs/宏禹水利管理软件-需求确认问题及资料收集清单V1.0.docx` | 52 个待确认问题 + 部署 / 网盘调研 + 10 项资料清单，客户直接填写 |
-| `docs/发给客户的沟通消息.txt` | 发微信或邮件时可以直接使用的消息文本 |
-| `docs/*.md` | 以上两份 Word 文档的源文件；修改 md 后执行 `python tools/md2docx.py <md> <docx> [--toc]` 重新生成 |
-| `prototype/index.html` | 可演示原型，双击用浏览器打开，PC / 手机自适应 |
-| `prototype/mobile-preview.html` | 在电脑上用手机外框展示手机端效果 |
+| `backend/` | 后端服务（Java 21 + Spring Boot 4.1 + PostgreSQL + Flyway） |
+| `frontend/` | 前端（Vue 3 + TypeScript + Vite + Element Plus） |
+| `docs/` | 需求规格说明书、需求确认问题及资料收集清单（Word + Markdown 源文件） |
+| `prototype/` | 纯前端可演示原型，双击 `index.html` 打开（PC / 手机自适应） |
+| `tools/md2docx.py` | Markdown 转 Word 工具：`python tools/md2docx.py <md> <docx> [--toc]` |
 
-原型是纯前端页面，不需要安装任何东西，也不需要联网。演示数据保存在浏览器本地；"我的 / 系统管理"里有"重置演示数据"，可以恢复初始状态。
+## 开发进度
 
-## 演示账号（密码都是 123456）
+| 模块 | 状态 |
+|---|---|
+| 系统管理：登录、用户、部门、角色权限、参数配置（考评指标 / 填报规则 / 安全设置）、日志审计、个人中心 | ✅ 已完成 |
+| 项目台账、周计划 / 周完成情况、周报统计 | ⏳ 待开发 |
+| 月度考评、年度汇总 | ⏳ 待开发（等客户确认考核办法） |
+| 资料中心（查询、预览、下载审批、网盘对接） | ⏳ 待开发（等客户提供网盘资料） |
 
-| 账号 | 姓名 | 角色 | 重点演示内容 |
-|---|---|---|---|
-| zhangsan | 张三 | 普通员工 | 周计划 / 周完成情况填报、资料预览、申请下载、我的申请 |
-| lisi | 李四 | 部门负责人（规划设计一部） | 部门填报统计 + 点评、下载审批、存档项目打分 |
-| chenzong | 陈总 | 公司领导 | 涉密资料终审、考评审核发布、年度汇总 |
-| admin | 刘管理 | 系统管理员 + 资料管理员 | 资料维护 / 网盘同步 / 下载日志、用户与考评规则配置 |
+## 技术栈
 
-页面右上角的"演示切换账号"可以随时切换角色（手机端在"我的"页面里）。
+| 层 | 选型 |
+|---|---|
+| 后端 | Java 21、Spring Boot 4.1、Spring Security 7（JWT，无状态）、Spring Data JPA（Hibernate 7）、Bean Validation |
+| 数据库 | PostgreSQL 14+（开发环境验证：PostgreSQL 18） |
+| 数据库脚本管理 | **Flyway**：`backend/src/main/resources/db/migration/V{n}__说明.sql`，应用启动时自动执行 |
+| 前端 | Vue 3.5、TypeScript、Vite 5、Element Plus、Pinia、Vue Router |
+| 测试 | JUnit 6 + MockMvc + 内嵌 PostgreSQL（zonky embedded-postgres，真实数据库 + Flyway 迁移） |
 
-## 建议演示路线（约 15 分钟）
+## 本地运行
 
-1. **登录**：展示账号密码登录，PC 和手机都能用（打开 `mobile-preview.html`）。
-2. **张三 · 周一报计划**：周计划填报 → 选项目、填工作内容 / 目标 / 工时 →"带入上周未完成"。
-3. **张三 · 周五报完成情况**：系统自动带出计划 → 拖动完成比例 → 低于 100% 必须填原因 → 自动算出完成率。
-4. **李四 · 部门统计**：周报查询统计 → 谁填了、谁没填、谁逾期 → 一键提醒 → 查看并点评。
-5. **李四 · 月度考评**：上月存档项目 → 系统给出参考数据（工期、周报完成率、工时、逾期）→ 打分。
-6. **陈总 · 审核发布**：月度考评 → 审核发布；年度汇总 → 排名、图表、导出。
-7. **张三 · 资料中心**：分类浏览 / 搜索 → 在线预览（带水印）→ 申请下载（涉密资料走两级审批）。
-8. **李四 / 陈总 · 下载审批**：通过 / 驳回（填原因）/ 批量通过 → 张三在"我的下载申请"中下载（有效期内限 3 次）。
-9. **admin · 资料维护**：上传、编辑密级、下架、同步网盘、下载日志。
+### 1. 准备数据库
+
+```sql
+create database water_management encoding 'UTF8';
+```
+
+默认连接 `localhost:5432/water_management`，账号 `postgres` / `postgres`，可通过环境变量覆盖：
+
+| 环境变量 | 默认值 |
+|---|---|
+| `DB_URL` | `jdbc:postgresql://localhost:5432/water_management` |
+| `DB_USERNAME` / `DB_PASSWORD` | `postgres` / `postgres` |
+| `JWT_SECRET` | 开发用密钥，**生产环境必须修改**（至少 32 个字符） |
+| `JWT_EXPIRE` | `12h` |
+| `CORS_ORIGINS` | 空（前端经同源代理访问，无需跨域；前后端不同域部署时才需配置） |
+
+表结构和初始数据由 Flyway 在启动时自动创建，无需手动执行 SQL。
+
+### 2. 启动后端（需要 JDK 21 或以上）
+
+```bash
+cd backend
+mvn spring-boot:run
+```
+
+本机没有 PostgreSQL 时，可以用内嵌数据库启动（数据保存在 `backend/target/dev-pgdata`，端口 15432）：
+
+```bash
+mvn spring-boot:test-run -Dspring-boot.run.main-class=com.hongyu.water.LocalDevApplication
+```
+
+### 3. 启动前端（需要 Node 18.18 或以上）
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+浏览器打开 http://localhost:5173 ，`/api` 请求由 Vite 代理到 `http://localhost:8080`。
+
+### 4. 登录
+
+内置超级管理员：**admin / admin123**，拥有全部权限，首次登录强制修改密码。
+新增用户的初始密码为 `Hy123456`（可在"参数配置 › 安全设置"中修改），用户首次登录同样需要改密。
+
+## 运行测试
+
+```bash
+cd backend
+mvn test
+```
+
+测试会自动下载并启动内嵌 PostgreSQL，不依赖本机数据库。
+
+## 数据库脚本约定（Flyway）
+
+- 脚本位置：`backend/src/main/resources/db/migration/`
+- 命名：`V{版本号}__{说明}.sql`，例如 `V3__weekly_plan.sql`；版本号递增
+- **已经执行过的脚本不能再修改**（Flyway 会校验 checksum，修改后启动会失败），变更一律新增脚本
+- Hibernate 设置为 `ddl-auto: validate`，只校验实体与表结构是否一致，不会自动改表
+- 新增菜单 / 按钮权限：在迁移脚本中向 `sys_permission` 插入记录，并给需要的角色授权；超级管理员自动拥有新权限
+
+## 权限设计
+
+- **RBAC**：用户 ↔ 角色（多对多）↔ 权限点（菜单 `MENU` / 按钮 `BUTTON`）
+- **数据范围**：角色上配置 `ALL` 全公司 / `DEPT` 本部门（含下级）/ `SELF` 本人，多个角色取最大范围
+- **内置角色**：系统管理员（超级管理员）、公司领导、部门负责人、资料管理员、普通员工
+- 后端接口使用 `@PreAuthorize("hasAuthority('权限点')")`；前端菜单按权限过滤，按钮使用 `v-perm` 指令
+- 每次请求都会校验用户状态和令牌版本：停用账号、重置密码、修改密码后，旧令牌立即失效
+- 安全规则：连续输错密码 5 次锁定 15 分钟；只有超级管理员能分配超级管理员角色、操作管理员账号；内置管理员不可删除 / 停用
+- 关键操作通过 `@OperLog` 注解自动记录操作日志，密码等敏感参数自动脱敏
+
+## 部署（建议）
+
+```bash
+# 后端打包
+cd backend && mvn -DskipTests package      # 生成 target/water-management-0.1.0-SNAPSHOT.jar
+java -jar water-management-0.1.0-SNAPSHOT.jar   # 通过环境变量配置数据库和 JWT_SECRET
+
+# 前端打包
+cd frontend && npm run build               # 生成 dist/，由 Nginx 托管
+```
+
+Nginx 示例：
+
+```nginx
+server {
+    listen 80;
+    root /opt/water-management/dist;
+    location / { try_files $uri $uri/ /index.html; }
+    location /api/ {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
+
+## 演示原型账号
+
+原型（`prototype/index.html`）为纯前端演示，数据保存在浏览器本地，与正式系统无关：
+zhangsan（员工）/ lisi（部门负责人）/ chenzong（公司领导）/ admin（管理员），密码均为 123456。

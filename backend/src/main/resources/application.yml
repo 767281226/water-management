@@ -1,0 +1,53 @@
+server:
+  port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+
+spring:
+  application:
+    name: water-management
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/water_management}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    hikari:
+      maximum-pool-size: 20
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate        # 表结构只由 Flyway 管理，Hibernate 仅做校验
+    properties:
+      hibernate:
+        jdbc.batch_size: 50
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: false
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+
+app:
+  jwt:
+    # 生产环境务必通过环境变量 JWT_SECRET 设置，至少 32 个字符
+    secret: ${JWT_SECRET:hongyu-water-management-dev-secret-change-me-2026}
+    expire: ${JWT_EXPIRE:12h}
+  cors:
+    # 默认留空：前端经同源代理访问，无需 CORS。前后端不同域部署时填写，多个用逗号分隔
+    allowed-origins: ${CORS_ORIGINS:}
+
+logging:
+  level:
+    com.hongyu.water: info
