@@ -131,11 +131,11 @@ svg {
   font-weight: 600;
 }
 .bar {
-  fill: #2a78d6;
+  fill: #2f6bff;
 }
 .bar.hl,
 g:hover .bar {
-  fill: #1c5cab;
+  fill: #2656cc;
 }
 .hit {
   fill: transparent;

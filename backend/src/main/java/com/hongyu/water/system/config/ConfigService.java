@@ -23,7 +23,7 @@ import com.hongyu.water.system.config.ConfigDtos.ScoreRuleDto;
 @Service
 public class ConfigService {
 
-    private static final Set<String> NOTIFY_CHANNELS = Set.of("SITE", "WECOM", "SMS");
+    private static final Set<String> NOTIFY_CHANNELS = Set.of("SITE");
 
     private final SysConfigRepository configRepo;
     private final ScoreRuleRepository ruleRepo;
@@ -98,7 +98,7 @@ public class ConfigService {
             case "fill.notify.channels" -> {
                 for (String ch : v.split(",")) {
                     if (!NOTIFY_CHANNELS.contains(ch.trim())) {
-                        throw new BizException("提醒渠道只能是 SITE、WECOM、SMS");
+                        throw new BizException("提醒渠道目前仅支持站内消息（SITE）");
                     }
                 }
             }

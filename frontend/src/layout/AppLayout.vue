@@ -30,11 +30,17 @@ const menus = computed(() =>
     isGroup(m) ? m.children.length > 0 : auth.hasPerm(m.perm)
   )
 )
+const activePath = computed(() => route.meta.menu || route.path)
 const openeds = computed(() =>
-  menus.value.filter((m): m is MenuGroup => isGroup(m) && m.children.some((c) => c.path === (route.meta.menu || route.path))).map((m) => m.title)
+  menus.value.filter((m): m is MenuGroup => isGroup(m) && m.children.some((c) => c.path === activePath.value)).map((m) => m.title)
 )
+/** 面包屑：所属菜单分组 */
+const groupTitle = computed(() => menus.value.find((m): m is MenuGroup => isGroup(m) && m.children.some((c) => c.path === activePath.value))?.title)
 const asGroup = (m: MenuItem | MenuGroup) => m as MenuGroup
 const asItem = (m: MenuItem | MenuGroup) => m as MenuItem
+
+const today = new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'short' })
+const sideWidth = computed(() => (collapsed.value ? (isMobile.value ? '0px' : '72px') : '232px'))
 
 function onSelect() {
   if (isMobile.value) collapsed.value = true
@@ -54,23 +60,26 @@ async function onCommand(cmd: string) {
 <template>
   <el-container class="layout">
     <div v-if="isMobile && !collapsed" class="mask" @click="collapsed = true" />
-    <el-aside :width="collapsed ? (isMobile ? '0px' : '64px') : '220px'" class="aside" :class="{ mobile: isMobile }">
-      <div class="brand">
+    <el-aside :width="sideWidth" class="aside" :class="{ mobile: isMobile, folded: collapsed }">
+      <div class="brand" @click="router.push('/')">
         <div class="logo">
           <svg viewBox="0 0 24 24"><path d="M12 2.5s7 7.4 7 12.4a7 7 0 0 1-14 0c0-5 7-12.4 7-12.4z" /></svg>
         </div>
-        <div v-show="!collapsed" class="brand-text"><b>宏禹水利管理</b><small>内部办公系统</small></div>
+        <div v-show="!collapsed" class="brand-text">
+          <b>宏禹水利</b>
+          <small>项目与资料管理平台</small>
+        </div>
       </div>
+
       <el-scrollbar class="menu-scroll">
         <el-menu
-          :default-active="route.meta.menu || route.path"
+          class="side-menu"
+          :default-active="activePath"
           :default-openeds="openeds"
           :collapse="collapsed && !isMobile"
           :collapse-transition="false"
+          popper-class="side-popper"
           router
-          background-color="#0f2a4a"
-          text-color="#b9c8db"
-          active-text-color="#ffffff"
           @select="onSelect"
         >
           <template v-for="m in menus" :key="isGroup(m) ? m.title : asItem(m).path">
@@ -92,23 +101,33 @@ async function onCommand(cmd: string) {
           </template>
         </el-menu>
       </el-scrollbar>
+
+      <!-- 底部水波装饰 -->
+      <svg class="waves" viewBox="0 0 240 70" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0 30 C 40 10, 80 50, 120 30 S 200 10, 240 30 V70 H0 Z" fill="rgba(25,182,255,0.10)" />
+        <path d="M0 42 C 50 25, 90 60, 140 42 S 210 28, 240 44 V70 H0 Z" fill="rgba(47,107,255,0.16)" />
+      </svg>
     </el-aside>
 
     <el-container class="right">
       <el-header class="header">
-        <el-button text circle @click="collapsed = !collapsed">
+        <button class="fold" :title="collapsed ? '展开菜单' : '收起菜单'" @click="collapsed = !collapsed">
           <el-icon :size="18"><Fold v-if="!collapsed" /><Expand v-else /></el-icon>
-        </el-button>
-        <h2 class="title">{{ route.meta.title }}</h2>
+        </button>
+        <div class="crumb">
+          <span v-if="groupTitle && !isMobile" class="crumb-group">{{ groupTitle }}<el-icon><ArrowRight /></el-icon></span>
+          <h2>{{ route.meta.title }}</h2>
+        </div>
         <div class="spacer" />
+        <span v-if="!isMobile" class="date"><el-icon><Calendar /></el-icon>{{ today }}</span>
         <el-dropdown trigger="click" @command="onCommand">
           <div class="user-chip">
-            <el-avatar :size="32" class="avatar">{{ auth.user?.realName.slice(-1) }}</el-avatar>
+            <div class="avatar">{{ auth.user?.realName.slice(-1) }}</div>
             <div v-if="!isMobile" class="nm">
               <span>{{ auth.user?.realName }}</span>
-              <small>{{ auth.user?.deptName || '—' }} · {{ auth.user?.roles.join(' / ') }}</small>
+              <small>{{ auth.user?.deptName || '—' }} · {{ auth.user?.roles[0] }}</small>
             </div>
-            <el-icon><ArrowDown /></el-icon>
+            <el-icon class="caret"><ArrowDown /></el-icon>
           </div>
           <template #dropdown>
             <el-dropdown-menu>
@@ -136,12 +155,17 @@ async function onCommand(cmd: string) {
 .layout {
   height: 100%;
 }
+
+/* ---------------- 侧边栏 ---------------- */
 .aside {
-  background: var(--hy-nav);
+  position: relative;
+  background: linear-gradient(180deg, #0b1f4b 0%, #0e2a63 60%, #10357a 100%);
   display: flex;
   flex-direction: column;
-  transition: width 0.2s;
+  transition: width 0.22s ease;
   overflow: hidden;
+  box-shadow: 4px 0 24px rgba(11, 31, 75, 0.18);
+  z-index: 10;
 }
 .aside.mobile {
   position: fixed;
@@ -153,105 +177,229 @@ async function onCommand(cmd: string) {
 .mask {
   position: fixed;
   inset: 0;
-  background: rgba(15, 30, 50, 0.4);
+  background: rgba(11, 31, 75, 0.45);
+  backdrop-filter: blur(2px);
   z-index: 29;
 }
 .brand {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 16px 15px;
+  gap: 12px;
+  height: 68px;
+  padding: 0 18px;
   color: #fff;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   white-space: nowrap;
+  cursor: pointer;
+  flex: none;
+}
+.aside.folded:not(.mobile) .brand {
+  padding: 0 17px;
 }
 .logo {
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
-  background: var(--hy-primary);
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: var(--hy-gradient);
   display: flex;
   align-items: center;
   justify-content: center;
   flex: none;
+  box-shadow: 0 6px 16px rgba(25, 182, 255, 0.35);
 }
 .logo svg {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   fill: #fff;
 }
 .brand-text b {
   display: block;
-  font-size: 15px;
+  font-size: 17px;
+  letter-spacing: 1px;
 }
 .brand-text small {
   font-size: 11px;
-  color: #b9c8db;
+  color: #8fa7cf;
 }
 .menu-scroll {
   flex: 1;
+  position: relative;
+  z-index: 1;
 }
-.el-menu {
+.side-menu {
+  --el-menu-bg-color: transparent;
+  --el-menu-text-color: #b9c8e2;
+  --el-menu-hover-text-color: #fff;
+  --el-menu-active-color: #fff;
+  --el-menu-hover-bg-color: rgba(255, 255, 255, 0.07);
+  --el-menu-item-height: 46px;
+  --el-menu-sub-item-height: 42px;
   border-right: none;
+  padding: 4px 0 80px;
 }
-:deep(.el-menu-item.is-active) {
-  background: var(--hy-primary) !important;
-  border-radius: 8px;
+.side-menu :deep(.el-menu) {
+  --el-menu-bg-color: transparent;
 }
-:deep(.el-menu-item),
-:deep(.el-sub-menu__title) {
-  margin: 2px 8px;
-  border-radius: 8px;
+.side-menu :deep(.el-menu-item),
+.side-menu :deep(.el-sub-menu__title) {
+  margin: 3px 12px;
+  border-radius: 10px;
+  transition: background 0.18s, color 0.18s;
 }
-:deep(.el-menu-item:hover),
-:deep(.el-sub-menu__title:hover) {
-  background: var(--hy-nav-2) !important;
+.side-menu :deep(.el-sub-menu .el-menu-item) {
+  padding-left: 46px !important;
+  min-width: 0;
+}
+.side-menu :deep(.el-menu-item.is-active) {
+  background: var(--hy-gradient) !important;
+  box-shadow: 0 6px 16px rgba(47, 107, 255, 0.4);
+  font-weight: 600;
+}
+.side-menu :deep(.el-sub-menu.is-active > .el-sub-menu__title) {
+  color: #fff;
+}
+.side-menu.el-menu--collapse :deep(.el-menu-item),
+.side-menu.el-menu--collapse :deep(.el-sub-menu__title) {
+  margin: 3px 12px;
+  padding: 0 !important;
+  justify-content: center;
 }
 .wip {
   margin-left: auto;
-  font-size: 11px;
-  color: #7189a8;
+  font-size: 10px;
+  color: #7f95bd;
+  border: 1px solid rgba(127, 149, 189, 0.4);
+  border-radius: 8px;
+  padding: 0 6px;
+  line-height: 16px;
 }
+.waves {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 70px;
+  pointer-events: none;
+}
+
+/* ---------------- 顶栏 ---------------- */
 .right {
   min-width: 0;
 }
 .header {
-  height: 56px;
-  background: #fff;
-  border-bottom: 1px solid #e3e7ee;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--hy-line);
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 0 16px;
+  gap: 12px;
+  padding: 0 22px 0 14px;
+  position: sticky;
+  top: 0;
+  z-index: 5;
 }
-.title {
+.fold {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 10px;
+  background: #f1f5fd;
+  color: #4b5568;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+.fold:hover {
+  background: #e3ecff;
+  color: var(--hy-primary);
+}
+.crumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.crumb-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--hy-text-3);
+  font-size: 14px;
+}
+.crumb h2 {
   font-size: 16px;
   margin: 0;
-  font-weight: 600;
+  font-weight: 700;
+  white-space: nowrap;
 }
 .spacer {
   flex: 1;
 }
+.date {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--hy-text-2);
+  font-size: 13px;
+  background: #f1f5fd;
+  border-radius: 16px;
+  padding: 5px 12px;
+}
 .user-chip {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   cursor: pointer;
   outline: none;
+  padding: 4px 8px 4px 4px;
+  border-radius: 24px;
+  transition: background 0.15s;
+}
+.user-chip:hover {
+  background: #f1f5fd;
 }
 .avatar {
-  background: var(--hy-primary);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--hy-gradient);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  box-shadow: 0 4px 10px rgba(47, 107, 255, 0.3);
 }
 .nm {
-  line-height: 1.25;
+  line-height: 1.3;
+  font-size: 14px;
+  font-weight: 600;
 }
 .nm small {
   display: block;
-  color: #8a94a6;
+  color: var(--hy-text-3);
   font-size: 11px;
+  font-weight: normal;
 }
+.caret {
+  color: var(--hy-text-3);
+}
+
+/* ---------------- 内容区 ---------------- */
 .main {
   padding: 0;
-  background: var(--hy-bg);
+  background:
+    radial-gradient(1200px 300px at 70% -120px, rgba(47, 107, 255, 0.08), transparent 70%),
+    var(--hy-bg);
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 0 12px;
+    height: 54px;
+  }
 }
 </style>

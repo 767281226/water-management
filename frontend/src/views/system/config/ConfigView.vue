@@ -16,11 +16,7 @@ const saving = ref(false)
 
 const weightSum = computed(() => rules.value.filter((r) => r.enabled).reduce((s, r) => s + (r.weight || 0), 0))
 
-const CHANNELS = [
-  { value: 'SITE', label: '站内消息' },
-  { value: 'WECOM', label: '企业微信' },
-  { value: 'SMS', label: '短信' }
-]
+const CHANNELS = [{ value: 'SITE', label: '站内消息' }]
 
 async function load() {
   ;[rules.value, fill.value, security.value, project.value] = await Promise.all([
@@ -122,7 +118,7 @@ onMounted(load)
               <el-button type="primary" :loading="saving" @click="saveConfigs(fill)">保存</el-button>
             </el-form-item>
           </el-form>
-          <el-alert type="warning" :closable="false" show-icon title="填报提醒、逾期判定将在周报模块上线后按此规则执行。" />
+          <el-alert type="warning" :closable="false" show-icon title="逾期判定已按以上截止时间执行；自动提醒将在消息功能上线后按提醒时间发送。" />
         </el-tab-pane>
 
         <el-tab-pane label="项目设置" name="project">
