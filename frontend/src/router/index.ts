@@ -43,13 +43,25 @@ const router = createRouter({ history: createWebHistory(), routes })
 router.beforeEach(async (to) => {
   const auth = useAuthStore()
   if (to.meta.public) {
-    if (to.path === '/login' && auth.token) return '/'
+    // 已有令牌时先在登录页原地校验：有效才进入系统，失效则清除令牌并留在登录页。
+    // 不能直接跳转首页再被 401 打回来，否则用户在此期间输入的账号会随旧页面一起丢失。
+    if (to.path === '/login' && auth.token) {
+      try {
+        if (!auth.user) await auth.fetchMe(true)
+        const r = to.query.redirect
+        const redirect = typeof r === 'string' && r.startsWith('/') && !r.startsWith('/login') ? r : '/'
+        return redirect
+      } catch {
+        await auth.logout(false)
+        return true
+      }
+    }
     return true
   }
   if (!auth.token) return { path: '/login', query: { redirect: to.fullPath } }
   if (!auth.user) {
     try {
-      await auth.fetchMe()
+      await auth.fetchMe(true)
     } catch {
       await auth.logout(false)
       return { path: '/login', query: { redirect: to.fullPath } }

@@ -29,8 +29,8 @@ export const useAuthStore = defineStore('auth', {
       await this.fetchMe()
       return res
     },
-    async fetchMe() {
-      this.user = await authApi.me()
+    async fetchMe(silent = false) {
+      this.user = await authApi.me(silent)
       this.mustChangePwd = this.user.mustChangePwd
     },
     requirePasswordChange() {

@@ -29,7 +29,7 @@ export interface Me {
 export const authApi = {
   login: (username: string, password: string) => post<LoginResponse>('/auth/login', { username, password }),
   logout: () => post('/auth/logout'),
-  me: () => get<Me>('/auth/me'),
+  me: (silent = false) => get<Me>('/auth/me', undefined, { silentAuth: silent }),
   changePassword: (oldPassword: string, newPassword: string) =>
     put<LoginResponse>('/auth/password', { oldPassword, newPassword }),
   updateProfile: (phone: string, email: string) => put('/auth/profile', { phone, email })
