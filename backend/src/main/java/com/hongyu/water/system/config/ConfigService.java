@@ -49,6 +49,12 @@ public class ConfigService {
         }
     }
 
+    /** 系统内部维护的参数（不在界面上修改） */
+    @Transactional
+    public void setInternal(String key, String value) {
+        configRepo.findById(key).ifPresent(c -> c.setConfigValue(value));
+    }
+
     public String initPassword() {
         return get("security.init-password", "Hy123456");
     }
@@ -64,7 +70,8 @@ public class ConfigService {
     @Transactional
     public void update(List<ConfigUpdate> items) {
         for (ConfigUpdate it : items) {
-            SysConfig c = configRepo.findById(it.key()).orElseThrow(() -> new BizException("参数不存在：" + it.key()));
+            SysConfig c = configRepo.findById(it.key()).filter(x -> !"internal".equals(x.getGroupCode()))
+                    .orElseThrow(() -> new BizException("参数不存在：" + it.key()));
             String v = it.value().trim();
             validate(c, v);
             c.setConfigValue(v);
@@ -79,6 +86,9 @@ public class ConfigService {
             case "security.init-password" -> PasswordPolicy.check(v);
             case "security.login.max-fail" -> requireRange(c, v, 1, 20);
             case "security.login.lock-minutes" -> requireRange(c, v, 1, 1440);
+            case "doc.download.valid-days" -> requireRange(c, v, 1, 365);
+            case "doc.download.max-times" -> requireRange(c, v, 1, 20);
+            case "doc.new-days" -> requireRange(c, v, 0, 365);
             case "fill.plan.deadline", "fill.report.deadline" -> {
                 if (!v.matches("^(下)?周[一二三四五六日天]\\s*\\d{1,2}[:：][0-5]\\d$")) {
                     throw new BizException(c.getName() + "格式应为「周X HH:mm」或「下周X HH:mm」，例如：周一 23:59");

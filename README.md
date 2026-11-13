@@ -20,7 +20,8 @@
 | 项目台账（新建 / 编辑、成员、状态流转、存档申请与确认）、周计划 / 周完成情况、周报统计（点评 / 退回）、工作台待办 | ✅ 已完成 |
 | 周报导出 Excel、填报提醒推送、节假日顺延 | ⏳ 待客户提供周报样表、确认消息渠道后开发 |
 | 月度考评（存档自动进入考评、参考数据、按工时分配个人贡献、打分 → 发布 / 撤回）、年度汇总（总览、月度分布、个人排名、部门对比、CSV 导出） | ✅ 已完成（指标与权重可在参数配置中调整，待客户确认考核办法） |
-| 资料中心（查询、预览、下载审批、网盘对接） | ⏳ 待开发（等客户提供网盘资料） |
+| 资料中心（分类、查询、在线预览 + 水印、下载申请与两级审批、限时限次下载、访问日志、资料维护） | ✅ 已完成 |
+| 内部网盘对接 | ✅ 挂载目录方式已可用；WebDAV / 厂商接口方式已预留扩展点（待客户提供网盘资料） |
 
 ## 技术栈
 
@@ -48,6 +49,11 @@ create database water_management encoding 'UTF8';
 | `DB_USERNAME` / `DB_PASSWORD` | `postgres` / `postgres` |
 | `JWT_SECRET` | 开发用密钥，**生产环境必须修改**（至少 32 个字符） |
 | `JWT_EXPIRE` | `12h` |
+| `DOC_STORAGE_DIR` | `./data/docs`（系统上传资料的保存目录，生产环境请放数据盘并纳入备份） |
+| `UPLOAD_MAX_SIZE` | `500MB`（单个上传文件大小上限） |
+| `NAS_TYPE` | `none`（未对接）/ `mount`（以挂载目录方式访问网盘） |
+| `NAS_ROOT` | 网盘根目录，如 `\\NAS01\资料库` 或 `/mnt/nas/资料库` |
+| `NAS_MAX_FILES` | `20000`（单次同步最多处理的文件数） |
 | `CORS_ORIGINS` | 空（前端经同源代理访问，无需跨域；前后端不同域部署时才需配置） |
 
 表结构和初始数据由 Flyway 在启动时自动创建，无需手动执行 SQL。
@@ -97,6 +103,20 @@ mvn test
 - Hibernate 设置为 `ddl-auto: validate`，只校验实体与表结构是否一致，不会自动改表
 - 新增菜单 / 按钮权限：在迁移脚本中向 `sys_permission` 插入记录，并给需要的角色授权；超级管理员自动拥有新权限
 
+## 内部网盘对接
+
+资料中心支持两种来源：**系统上传**（保存在 `DOC_STORAGE_DIR`）和**内部网盘**（系统只建立索引，文件仍在网盘中，见需求说明书 5.2 方案 A）。
+
+1. 把网盘共享目录挂载到服务器：
+   - Windows：直接使用 UNC 路径（如 `\NAS01\资料库`），后端服务的运行账号需要有读取权限；
+   - Linux：`mount -t cifs //NAS01/资料库 /mnt/nas -o username=...,ro` 或 NFS 挂载。
+2. 设置环境变量 `NAS_TYPE=mount`、`NAS_ROOT=挂载路径`，重启后端。
+3. 用资料管理员账号进入"资料维护 › 网盘对接"，点击"立即同步"。
+
+同步规则：一级 / 二级目录对应一级 / 二级分类；文件名以标准号开头（如 `SL 252-2017 ...`）时自动识别编号和年份；网盘中删除的文件自动下架，恢复后自动上架。新文件默认"内部 / 需审批"，可在资料列表中调整。
+
+**扩展其他网盘**：网盘只能通过 WebDAV 或厂商 API 访问时，实现 `com.hongyu.water.doc.storage.NasClient` 接口（列出文件、读取文件两个方法），并在 `NasConfig` 中按 `NAS_TYPE` 注册即可，业务代码无需修改。
+
 ## 权限设计
 
 - **RBAC**：用户 ↔ 角色（多对多）↔ 权限点（菜单 `MENU` / 按钮 `BUTTON`）
@@ -125,8 +145,10 @@ server {
     listen 80;
     root /opt/water-management/dist;
     location / { try_files $uri $uri/ /index.html; }
+    client_max_body_size 500m;              # 与 UPLOAD_MAX_SIZE 保持一致
     location /api/ {
         proxy_pass http://127.0.0.1:8080;
+        proxy_read_timeout 600s;            # 大文件上传 / 下载
         proxy_set_header Host $host;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Real-IP $remote_addr;

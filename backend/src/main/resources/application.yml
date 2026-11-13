@@ -27,8 +27,8 @@ spring:
     baseline-on-migrate: false
   servlet:
     multipart:
-      max-file-size: 50MB
-      max-request-size: 50MB
+      max-file-size: ${UPLOAD_MAX_SIZE:500MB}
+      max-request-size: ${UPLOAD_MAX_SIZE:500MB}
 
 management:
   endpoints:
@@ -44,6 +44,14 @@ app:
     # 生产环境务必通过环境变量 JWT_SECRET 设置，至少 32 个字符
     secret: ${JWT_SECRET:hongyu-water-management-dev-secret-change-me-2026}
     expire: ${JWT_EXPIRE:12h}
+  storage:
+    # 系统上传资料的保存目录（生产环境请配置到数据盘并纳入备份）
+    local-dir: ${DOC_STORAGE_DIR:./data/docs}
+  nas:
+    # none 未对接；mount 以挂载目录访问网盘（Windows 共享路径或 Linux 挂载点）
+    type: ${NAS_TYPE:none}
+    root: ${NAS_ROOT:}
+    max-files: ${NAS_MAX_FILES:20000}
   cors:
     # 默认留空：前端经同源代理访问，无需 CORS。前后端不同域部署时填写，多个用逗号分隔
     allowed-origins: ${CORS_ORIGINS:}

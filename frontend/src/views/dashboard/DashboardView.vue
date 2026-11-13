@@ -5,6 +5,7 @@ import { weeklyApi, type TodoResponse } from '@/api/weekly'
 import { scoreApi } from '@/api/score'
 import { projectApi } from '@/api/project'
 import { annualApi } from '@/api/annual'
+import { docApi } from '@/api/doc'
 import { fmtDeadline } from '@/utils/week'
 import { fmtTime } from '@/utils/format'
 import { useAuthStore } from '@/stores/auth'
@@ -16,6 +17,7 @@ const todo = ref<TodoResponse | null>(null)
 const scoreTodo = ref<{ toGrade: number; toPublish: number } | null>(null)
 const myProjects = ref<number | null>(null)
 const myAvg = ref<number | null>(null)
+const docTodo = ref(0)
 
 const hour = new Date().getHours()
 const greeting = hour < 6 ? '夜深了' : hour < 12 ? '上午好' : hour < 14 ? '中午好' : hour < 18 ? '下午好' : '晚上好'
@@ -42,6 +44,7 @@ const todos = computed<TodoItem[]>(() => {
   const s = scoreTodo.value
   if (s?.toGrade) list.push({ icon: 'Star', tone: 'orange', title: `${s.toGrade} 个存档项目待打分`, sub: '月度考评', btn: '去打分', to: '/score', primary: true })
   if (s?.toPublish) list.push({ icon: 'Stamp', tone: 'violet', title: `${s.toPublish} 个考评待审核发布`, sub: '月度考评', btn: '去发布', to: '/score', primary: true })
+  if (docTodo.value) list.push({ icon: 'Download', tone: 'cyan', title: `${docTodo.value} 条资料下载申请待审批`, sub: '资料中心', btn: '去审批', to: '/doc/approve', primary: true })
   return list
 })
 const pending = computed(() => todos.value.filter((t) => t.primary).length)
@@ -70,6 +73,7 @@ onMounted(() => {
   const isAdminOnly = auth.user?.superAdmin
   if (auth.hasPerm('weekly:plan') && !isAdminOnly) weeklyApi.todo().then((r) => (todo.value = r)).catch(() => undefined)
   if (auth.hasPerm(['score:grade', 'score:publish'])) scoreApi.todo().then((r) => (scoreTodo.value = r)).catch(() => undefined)
+  if (auth.hasPerm('doc:approve')) docApi.todoCount().then((n) => (docTodo.value = n)).catch(() => undefined)
   if (auth.hasPerm('project:ledger')) projectApi.page({ mine: true, page: 1, size: 1 }).then((r) => (myProjects.value = r.total)).catch(() => undefined)
   if (auth.hasPerm('annual') && !isAdminOnly) annualApi.summary(new Date().getFullYear()).then((r) => (myAvg.value = r.me?.avg ?? null)).catch(() => undefined)
 })

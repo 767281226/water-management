@@ -56,11 +56,15 @@ public class SecurityConfig {
         } else {
             http.cors(c -> c.configurationSource(corsConfigurationSource(origins)));
         }
+        // 资料在线预览通过同源 iframe 加载，允许同源嵌入（默认 DENY 会导致预览空白）
+        http.headers(h -> h.frameOptions(f -> f.sameOrigin()));
         http.csrf(c -> c.disable())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(a -> a
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
+                        // 资料预览 / 下载：凭短时凭证访问（凭证在登录状态下签发并已校验权限）
+                        .requestMatchers(HttpMethod.GET, "/api/files/**").permitAll()
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().permitAll())
                 .oauth2ResourceServer(o -> o

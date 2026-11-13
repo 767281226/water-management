@@ -90,3 +90,14 @@ export async function put<T = void>(url: string, body?: unknown): Promise<T> {
 export async function del<T = void>(url: string): Promise<T> {
   return (await http.delete<ApiResponse<T>>(url)).data.data
 }
+
+/** 上传文件（multipart），可选进度回调 0~100 */
+export async function upload<T = void>(url: string, form: FormData, onProgress?: (pct: number) => void): Promise<T> {
+  const res = await http.post<ApiResponse<T>>(url, form, {
+    timeout: 0,
+    onUploadProgress: (e) => {
+      if (onProgress && e.total) onProgress(Math.round((e.loaded * 100) / e.total))
+    }
+  })
+  return res.data.data
+}

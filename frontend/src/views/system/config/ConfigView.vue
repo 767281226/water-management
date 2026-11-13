@@ -12,6 +12,7 @@ const rules = ref<ScoreRule[]>([])
 const fill = ref<ConfigItem[]>([])
 const security = ref<ConfigItem[]>([])
 const project = ref<ConfigItem[]>([])
+const doc = ref<ConfigItem[]>([])
 const saving = ref(false)
 
 const weightSum = computed(() => rules.value.filter((r) => r.enabled).reduce((s, r) => s + (r.weight || 0), 0))
@@ -19,11 +20,12 @@ const weightSum = computed(() => rules.value.filter((r) => r.enabled).reduce((s,
 const CHANNELS = [{ value: 'SITE', label: '站内消息' }]
 
 async function load() {
-  ;[rules.value, fill.value, security.value, project.value] = await Promise.all([
+  ;[rules.value, fill.value, security.value, project.value, doc.value] = await Promise.all([
     configApi.scoreRules(),
     configApi.list('fill'),
     configApi.list('security'),
-    configApi.list('project')
+    configApi.list('project'),
+    configApi.list('doc')
   ])
 }
 
@@ -129,6 +131,19 @@ onMounted(load)
             </el-form-item>
             <el-form-item v-if="canEdit">
               <el-button type="primary" :loading="saving" @click="saveConfigs(project)">保存</el-button>
+            </el-form-item>
+          </el-form>
+        </el-tab-pane>
+
+        <el-tab-pane label="资料设置" name="doc">
+          <el-form label-width="170px" class="cfg-form">
+            <el-form-item v-for="c in doc" :key="c.key" :label="c.name">
+              <el-input-number :model-value="Number(c.value)" :min="c.key === 'doc.new-days' ? 0 : 1" :max="c.key.includes('max-times') ? 20 : 365"
+                :disabled="!canEdit" @update:model-value="(v: number | undefined) => (c.value = String(v ?? ''))" />
+              <div class="hint">{{ c.remark }}</div>
+            </el-form-item>
+            <el-form-item v-if="canEdit">
+              <el-button type="primary" :loading="saving" @click="saveConfigs(doc)">保存</el-button>
             </el-form-item>
           </el-form>
         </el-tab-pane>

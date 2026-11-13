@@ -38,10 +38,10 @@ export const MENUS: (MenuItem | MenuGroup)[] = [
     icon: 'Reading',
     perm: 'doc',
     children: [
-      { path: '/doc/search', title: '资料查询', icon: 'Search', perm: 'doc:search' },
-      { path: '/doc/request', title: '我的下载申请', icon: 'Download', perm: 'doc:request' },
-      { path: '/doc/approve', title: '下载审批', icon: 'Stamp', perm: 'doc:approve' },
-      { path: '/doc/manage', title: '资料维护', icon: 'UploadFilled', perm: 'doc:manage' }
+      { path: '/doc/search', title: '资料查询', icon: 'Search', perm: 'doc:search', component: () => import('@/views/doc/DocSearchView.vue') },
+      { path: '/doc/request', title: '我的下载申请', icon: 'Download', perm: 'doc:request', component: () => import('@/views/doc/MyRequestView.vue') },
+      { path: '/doc/approve', title: '下载审批', icon: 'Stamp', perm: 'doc:approve', component: () => import('@/views/doc/ApproveView.vue') },
+      { path: '/doc/manage', title: '资料维护', icon: 'UploadFilled', perm: 'doc:manage', component: () => import('@/views/doc/DocManageView.vue') }
     ]
   },
   {

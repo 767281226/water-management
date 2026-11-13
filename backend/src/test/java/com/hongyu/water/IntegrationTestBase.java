@@ -15,7 +15,7 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.request.AbstractMockHttpServletRequestBuilder;
 
 import io.zonky.test.db.postgres.embedded.EmbeddedPostgres;
 import tools.jackson.databind.JsonNode;
@@ -31,10 +31,16 @@ public abstract class IntegrationTestBase {
     protected static final String ADMIN_PASSWORD = "Admin2026";
     private static final EmbeddedPostgres PG;
     private static String adminToken;
+    /** 本地资料存储目录（临时） */
+    protected static final java.nio.file.Path STORAGE_DIR;
+    /** 模拟的网盘挂载目录（临时） */
+    protected static final java.nio.file.Path NAS_DIR;
 
     static {
         try {
             PG = EmbeddedPostgres.builder().start();
+            STORAGE_DIR = java.nio.file.Files.createTempDirectory("hy-docs");
+            NAS_DIR = java.nio.file.Files.createTempDirectory("hy-nas");
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -45,6 +51,9 @@ public abstract class IntegrationTestBase {
         r.add("spring.datasource.url", () -> PG.getJdbcUrl("postgres", "postgres"));
         r.add("spring.datasource.username", () -> "postgres");
         r.add("spring.datasource.password", () -> "");
+        r.add("app.storage.local-dir", STORAGE_DIR::toString);
+        r.add("app.nas.type", () -> "mount");
+        r.add("app.nas.root", NAS_DIR::toString);
     }
 
     @Autowired
@@ -71,11 +80,11 @@ public abstract class IntegrationTestBase {
     }
 
     /** 发送请求并返回响应 JSON（不校验状态码）。 */
-    protected JsonNode call(MockHttpServletRequestBuilder req, String token, String body) throws Exception {
+    protected JsonNode call(AbstractMockHttpServletRequestBuilder<?> req, String token, String body) throws Exception {
         return json.readTree(raw(req, token, body).getResponse().getContentAsString());
     }
 
-    protected MvcResult raw(MockHttpServletRequestBuilder req, String token, String body) throws Exception {
+    protected MvcResult raw(AbstractMockHttpServletRequestBuilder<?> req, String token, String body) throws Exception {
         if (token != null) {
             req.header("Authorization", "Bearer " + token);
         }
