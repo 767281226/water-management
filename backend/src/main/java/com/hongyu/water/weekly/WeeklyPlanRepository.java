@@ -22,4 +22,9 @@ public interface WeeklyPlanRepository extends JpaRepository<WeeklyPlan, Long> {
     List<WeeklyPlan> findByWeekStartAndUserIdIn(LocalDate weekStart, Collection<Long> userIds);
 
     Page<WeeklyPlan> findByUserIdOrderByWeekStartDesc(Long userId, Pageable pageable);
+
+    /** 某时间段内每人提交的周计划数：[userId, count] */
+    @org.springframework.data.jpa.repository.Query("select p.userId, count(p) from WeeklyPlan p "
+            + "where p.planStatus = :status and p.weekStart between :from and :to group by p.userId")
+    List<Object[]> countByStatusAndUserBetween(WeeklyPlan.PlanStatus status, LocalDate from, LocalDate to);
 }

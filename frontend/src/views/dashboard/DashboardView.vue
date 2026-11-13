@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { weeklyApi, type TodoResponse } from '@/api/weekly'
+import { scoreApi } from '@/api/score'
 import { fmtDeadline } from '@/utils/week'
 import { useAuthStore } from '@/stores/auth'
 import { flatMenus } from '@/router/menu'
@@ -11,13 +12,15 @@ import { fmtTime } from '@/utils/format'
 const auth = useAuthStore()
 const router = useRouter()
 const todo = ref<TodoResponse | null>(null)
+const scoreTodo = ref<{ toGrade: number; toPublish: number } | null>(null)
 
 interface TodoItem { icon: string; cls: string; title: string; sub: string; btn: string; to: string; primary: boolean }
 const todos = computed<TodoItem[]>(() => {
   const t = todo.value
-  if (!t) return []
   const list: TodoItem[] = []
-  if (t.planStatus === 'RETURNED') {
+  if (!t) {
+    // 无需填周报的账号（如管理员）
+  } else if (t.planStatus === 'RETURNED') {
     list.push({ icon: 'WarningFilled', cls: 'bad', title: '本周周报被退回', sub: `原因：${t.returnReason}`, btn: '去修改', to: '/weekly/plan', primary: true })
   } else if (t.planStatus === 'NONE') {
     list.push({ icon: 'EditPen', cls: 'bad', title: '本周计划未填报', sub: `截止 ${fmtDeadline(t.week.planDeadline)}${t.planDeadlinePassed ? '（已逾期）' : ''}`, btn: '去填报', to: '/weekly/plan', primary: true })
@@ -29,11 +32,15 @@ const todos = computed<TodoItem[]>(() => {
       list.push({ icon: 'Finished', cls: 'warn', title: '本周完成情况待填报', sub: `截止 ${fmtDeadline(t.week.reportDeadline)}${t.reportDeadlinePassed ? '（已逾期）' : ''}`, btn: '去填报', to: '/weekly/report', primary: true })
     }
   }
+  const s = scoreTodo.value
+  if (s?.toGrade) list.push({ icon: 'Star', cls: 'warn', title: `${s.toGrade} 个存档项目待打分`, sub: '月度考评', btn: '去打分', to: '/score', primary: true })
+  if (s?.toPublish) list.push({ icon: 'Stamp', cls: 'warn', title: `${s.toPublish} 个考评待审核发布`, sub: '月度考评', btn: '去发布', to: '/score', primary: true })
   return list
 })
 
 onMounted(async () => {
   if (auth.hasPerm('weekly:plan') && !auth.user?.superAdmin) todo.value = await weeklyApi.todo()
+  if (auth.hasPerm(['score:grade', 'score:publish'])) scoreTodo.value = await scoreApi.todo()
 })
 const hour = new Date().getHours()
 const greeting = hour < 12 ? '上午好' : hour < 18 ? '下午好' : '晚上好'
@@ -89,7 +96,7 @@ const shortcuts = computed(() => flatMenus().filter((m) => m.path !== '/dashboar
           </div>
         </div>
         <el-alert type="info" :closable="false" show-icon class="notice">
-          <template #title>已上线：系统管理、项目台账、周计划 / 周完成情况、周报统计；月度考评、年度汇总、资料中心正在开发中。</template>
+          <template #title>已上线：系统管理、项目台账、周报、月度考评、年度汇总；资料中心正在开发中。</template>
         </el-alert>
       </el-col>
     </el-row>

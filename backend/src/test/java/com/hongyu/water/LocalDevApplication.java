@@ -37,10 +37,17 @@ public class LocalDevApplication {
                 + dataDir.getAbsolutePath() + "）");
 
         SpringApplication app = new SpringApplication(WaterApplication.class);
-        app.setDefaultProperties(java.util.Map.of(
-                "spring.datasource.url", pg.getJdbcUrl("postgres", "postgres"),
-                "spring.datasource.username", "postgres",
-                "spring.datasource.password", ""));
-        app.run(args);
+        // 注意：必须用系统属性（优先级高于 application.yml），不能用 setDefaultProperties，
+        // 否则 application.yml 中 ${DB_URL:...} 的默认值会生效，连到本机 PostgreSQL。
+        System.setProperty("spring.datasource.url", pg.getJdbcUrl("postgres", "postgres"));
+        System.setProperty("spring.datasource.username", "postgres");
+        System.setProperty("spring.datasource.password", "");
+        var ctx = app.run(args);
+        String url = ctx.getEnvironment().getProperty("spring.datasource.url");
+        if (url == null || !url.contains(":" + port + "/")) {
+            ctx.close();
+            throw new IllegalStateException("数据源没有指向内嵌 PostgreSQL：" + url);
+        }
+        System.out.println("已连接内嵌 PostgreSQL：" + url);
     }
 }

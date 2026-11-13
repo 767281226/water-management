@@ -106,6 +106,7 @@ export interface ProjectDetail {
   totalDays: number
   memberCount: number
   recentEntries: ProjectWeeklyEntry[]
+  score: { id: number; month: string; status: 'PENDING' | 'SCORED' | 'PUBLISHED'; total: number | null } | null
 }
 
 export interface ProjectOption {

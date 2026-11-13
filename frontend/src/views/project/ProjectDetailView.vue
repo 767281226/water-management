@@ -145,7 +145,13 @@ onMounted(load)
         <el-col :xs="12" :sm="6"><div class="card stat"><span>周报记录</span><b>{{ data.weeklyCount }}<small> 条</small></b></div></el-col>
         <el-col :xs="12" :sm="6"><div class="card stat"><span>累计工时</span><b>{{ Number(data.totalDays) }}<small> 人·天</small></b></div></el-col>
         <el-col :xs="12" :sm="6"><div class="card stat"><span>参与人数</span><b>{{ data.memberCount }}<small> 人</small></b></div></el-col>
-        <el-col :xs="12" :sm="6"><div class="card stat"><span>考评得分</span><b>—<small> 待考评模块</small></b></div></el-col>
+        <el-col :xs="12" :sm="6">
+          <div class="card stat">
+            <span>考评得分</span>
+            <b v-if="data.score?.total !== null && data.score?.total !== undefined">{{ Number(data.score.total).toFixed(1) }}<small> 分 · {{ data.score.month }}</small></b>
+            <b v-else>—<small> {{ data.score ? (data.score.status === 'PENDING' ? '待打分' : '待发布') : '存档后考评' }}</small></b>
+          </div>
+        </el-col>
       </el-row>
 
       <div class="card">

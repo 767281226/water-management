@@ -30,7 +30,10 @@ import com.hongyu.water.project.ProjectDtos.ProjectOption;
 import com.hongyu.water.project.ProjectDtos.ProjectQuery;
 import com.hongyu.water.project.ProjectDtos.ProjectVO;
 import com.hongyu.water.project.ProjectDtos.ProjectWeeklyEntry;
+import com.hongyu.water.project.ProjectDtos.ScoreBrief;
 import com.hongyu.water.project.ProjectDtos.UserRef;
+import com.hongyu.water.score.Score;
+import com.hongyu.water.score.ScoreRepository;
 import com.hongyu.water.security.CurrentUser;
 import com.hongyu.water.security.DataScopeHelper;
 import com.hongyu.water.system.config.ConfigService;
@@ -64,9 +67,11 @@ public class ProjectService {
     private final DeptService deptService;
     private final DataScopeHelper scope;
     private final ConfigService configService;
+    private final ScoreRepository scoreRepo;
 
     public ProjectService(ProjectRepository repo, WeeklyItemRepository itemRepo, SysUserRepository userRepo,
-            DeptService deptService, DataScopeHelper scope, ConfigService configService) {
+            DeptService deptService, DataScopeHelper scope, ConfigService configService, ScoreRepository scoreRepo) {
+        this.scoreRepo = scoreRepo;
         this.repo = repo;
         this.itemRepo = itemRepo;
         this.userRepo = userRepo;
@@ -125,8 +130,11 @@ public class ProjectService {
                 i.getTarget(), i.getPlanDays(), i.getCompletion(), i.getActualContent(), i.getActualDays(), i.getReason(),
                 i.isExtra(), i.getPlan().reported())).toList();
         BigDecimal days = itemRepo.sumDaysByProject(id);
+        ScoreBrief score = scoreRepo.findByProjectId(id)
+                .map(s -> new ScoreBrief(s.getId(), s.getMonth(), s.getStatus().name(), s.published() ? s.getTotal() : null))
+                .orElse(null);
         return new ProjectDetail(toVO(p, cu, names, deptService.nameMap()), itemRepo.countByProjectId(id), days,
-                p.getMemberIds().size() + 1, entries);
+                p.getMemberIds().size() + 1, entries, score);
     }
 
     /** 周报中可选择的项目：我负责 / 参与且未存档、未终止。 */
@@ -213,6 +221,13 @@ public class ProjectService {
         p.setArchiveApplied(false);
         p.setArchivedAt(LocalDateTime.now().withNano(0));
         p.setArchivedBy(cu.id());
+        // 进入存档当月的考评清单
+        if (!scoreRepo.existsByProjectId(p.getId())) {
+            Score s = new Score();
+            s.setProjectId(p.getId());
+            s.setMonth(String.format("%d-%02d", p.getArchivedAt().getYear(), p.getArchivedAt().getMonthValue()));
+            scoreRepo.save(s);
+        }
     }
 
     @Transactional

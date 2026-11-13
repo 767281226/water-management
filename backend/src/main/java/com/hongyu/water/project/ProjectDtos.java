@@ -66,7 +66,11 @@ public final class ProjectDtos {
             String reason, boolean extra, boolean reported) {
     }
 
+    /** 考评情况：已发布时才返回得分 */
+    public record ScoreBrief(Long id, String month, String status, BigDecimal total) {
+    }
+
     public record ProjectDetail(ProjectVO project, long weeklyCount, BigDecimal totalDays, int memberCount,
-            List<ProjectWeeklyEntry> recentEntries) {
+            List<ProjectWeeklyEntry> recentEntries, ScoreBrief score) {
     }
 }

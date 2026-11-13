@@ -29,8 +29,8 @@ export const MENUS: (MenuItem | MenuGroup)[] = [
       { path: '/weekly/plan', title: '周计划填报', icon: 'EditPen', perm: 'weekly:plan', component: () => import('@/views/weekly/WeeklyPlanView.vue') },
       { path: '/weekly/report', title: '周完成情况', icon: 'Finished', perm: 'weekly:report', component: () => import('@/views/weekly/WeeklyReportView.vue') },
       { path: '/weekly/stat', title: '周报查询统计', icon: 'List', perm: 'weekly:stat', component: () => import('@/views/weekly/WeeklyStatView.vue') },
-      { path: '/score', title: '月度考评', icon: 'Star', perm: 'score' },
-      { path: '/annual', title: '年度汇总', icon: 'TrendCharts', perm: 'annual' }
+      { path: '/score', title: '月度考评', icon: 'Star', perm: 'score', component: () => import('@/views/score/ScoreView.vue') },
+      { path: '/annual', title: '年度汇总', icon: 'TrendCharts', perm: 'annual', component: () => import('@/views/annual/AnnualView.vue') }
     ]
   },
   {

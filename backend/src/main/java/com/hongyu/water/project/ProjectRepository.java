@@ -24,4 +24,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, JpaSpec
     List<Project> findInvolving(Long userId);
 
     List<Project> findByIdIn(Collection<Long> ids);
+
+    List<Project> findByDeletedFalseAndStatusAndArchivedAtBetween(ProjectStatus status, java.time.LocalDateTime from,
+            java.time.LocalDateTime to);
 }

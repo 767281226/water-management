@@ -356,7 +356,8 @@ public class WeeklyService {
         return scope.canSeeDept(cu, deptId);
     }
 
-    private static boolean shouldFill(SysUser u) {
+    /** 需要填写周报的人员：拥有周计划权限，且不是只有超级管理员角色的账号 */
+    public static boolean shouldFill(SysUser u) {
         return u.getRoles().stream().anyMatch(r -> r.isSuperAdmin() || r.getPermissions().contains(PERM_FILL))
                 && !u.getRoles().stream().allMatch(SysRole::isSuperAdmin);
     }
