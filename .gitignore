@@ -31,3 +31,10 @@ __pycache__/
 # 本地资料存储
 backend/data/
 data/
+
+# 部署产物
+deploy/docker/.env
+deploy/docker/backups/
+deploy/docker/*.tar.gz
+deploy/windows/release/
+deploy/windows/tools/

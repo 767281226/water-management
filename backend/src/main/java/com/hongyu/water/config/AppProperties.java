@@ -9,7 +9,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * 应用自定义配置（application.yml 中的 app.*）。
  */
 @ConfigurationProperties("app")
-public record AppProperties(Jwt jwt, Cors cors, Storage storage, Nas nas) {
+public record AppProperties(Jwt jwt, Cors cors, Storage storage, Nas nas, Web web) {
 
     public record Jwt(String secret, Duration expire) {
     }
@@ -30,5 +30,13 @@ public record AppProperties(Jwt jwt, Cors cors, Storage storage, Nas nas) {
      * @param maxFiles 单次同步最多处理的文件数（防止误配到超大目录）
      */
     public record Nas(String type, String root, Integer maxFiles) {
+    }
+
+    /**
+     * 由后端直接提供前端页面（Windows 单服务部署时使用；Docker / Nginx 部署无需配置）。
+     *
+     * @param staticDir 前端打包目录（包含 index.html），为空表示不提供
+     */
+    public record Web(String staticDir) {
     }
 }

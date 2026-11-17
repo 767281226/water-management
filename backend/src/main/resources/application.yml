@@ -25,6 +25,10 @@ spring:
     enabled: true
     locations: classpath:db/migration
     baseline-on-migrate: false
+  web:
+    resources:
+      # 不使用 classpath 静态资源；需要由后端提供前端页面时配置 app.web.static-dir
+      add-mappings: false
   servlet:
     multipart:
       max-file-size: ${UPLOAD_MAX_SIZE:500MB}
@@ -52,6 +56,9 @@ app:
     type: ${NAS_TYPE:none}
     root: ${NAS_ROOT:}
     max-files: ${NAS_MAX_FILES:20000}
+  web:
+    # 前端打包目录（包含 index.html）。Windows 单服务部署时设置，由后端直接提供页面；Docker / Nginx 部署留空
+    static-dir: ${WEB_STATIC_DIR:}
   cors:
     # 默认留空：前端经同源代理访问，无需 CORS。前后端不同域部署时填写，多个用逗号分隔
     allowed-origins: ${CORS_ORIGINS:}

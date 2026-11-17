@@ -10,6 +10,7 @@
 | `frontend/` | 前端（Vue 3 + TypeScript + Vite + Element Plus） |
 | `docs/` | 需求规格说明书、需求确认问题及资料收集清单（Word + Markdown 源文件） |
 | `prototype/` | 纯前端可演示原型，双击 `index.html` 打开（PC / 手机自适应） |
+| `deploy/` | 部署脚本：Linux Docker Compose（`deploy/docker`）、Windows 服务（`deploy/windows`） |
 | `tools/md2docx.py` | Markdown 转 Word 工具：`python tools/md2docx.py <md> <docx> [--toc]` |
 
 ## 开发进度
@@ -128,34 +129,18 @@ mvn test
 - 安全规则：连续输错密码 5 次锁定 15 分钟；只有超级管理员能分配超级管理员角色、操作管理员账号；内置管理员不可删除 / 停用
 - 关键操作通过 `@OperLog` 注解自动记录操作日志，密码等敏感参数自动脱敏
 
-## 部署（建议）
+## 部署
 
-```bash
-# 后端打包
-cd backend && mvn -DskipTests package      # 生成 target/water-management-0.1.0-SNAPSHOT.jar
-java -jar water-management-0.1.0-SNAPSHOT.jar   # 通过环境变量配置数据库和 JWT_SECRET
+详细步骤见 **[deploy/README.md](deploy/README.md)**，生产环境部署一套即可，两种方式任选：
 
-# 前端打包
-cd frontend && npm run build               # 生成 dist/，由 Nginx 托管
-```
+| 方式 | 入口 | 说明 |
+|---|---|---|
+| Linux + Docker Compose | `deploy/docker/deploy.sh` | PostgreSQL + 后端 + Nginx 三个容器；`init` / `up` / `backup` / `restore` / `update` 一条命令完成 |
+| Windows 服务 | `deploy/windows/build-release.ps1` 打包，服务器运行 `install.bat` | 后端注册为 Windows 服务并直接提供页面（`WEB_STATIC_DIR`），无需 Nginx；`manage.bat` 管理启停、备份、恢复 |
 
-Nginx 示例：
-
-```nginx
-server {
-    listen 80;
-    root /opt/water-management/dist;
-    location / { try_files $uri $uri/ /index.html; }
-    client_max_body_size 500m;              # 与 UPLOAD_MAX_SIZE 保持一致
-    location /api/ {
-        proxy_pass http://127.0.0.1:8080;
-        proxy_read_timeout 600s;            # 大文件上传 / 下载
-        proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-}
-```
+| 部署相关环境变量 | 说明 |
+|---|---|
+| `WEB_STATIC_DIR` | 前端打包目录（含 `index.html`）。设置后由后端直接提供页面，前端路由自动回退到 `index.html`；使用 Nginx 时留空 |
 
 ## 演示原型账号
 
