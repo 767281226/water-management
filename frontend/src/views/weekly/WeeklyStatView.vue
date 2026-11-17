@@ -7,8 +7,10 @@ import { useAuthStore } from '@/stores/auth'
 import { mondayOf } from '@/utils/week'
 import WeekSwitcher from '@/components/WeekSwitcher.vue'
 import WeeklyDetailDialog from './WeeklyDetailDialog.vue'
+import { useMobile } from '@/composables/useMobile'
 
 const auth = useAuthStore()
+const isMobile = useMobile()
 const canTeam = computed(() => auth.user?.dataScope !== 'SELF')
 const tab = ref<'team' | 'mine'>(canTeam.value ? 'team' : 'mine')
 
@@ -116,7 +118,7 @@ onMounted(async () => {
           <el-col :xs="12" :sm="6"><div class="tile"><span>完成情况已提交</span><b>{{ stat.reportSubmitted }}<small> / {{ stat.total }}</small></b></div></el-col>
           <el-col :xs="12" :sm="6"><div class="tile"><span>平均完成率</span><b>{{ stat.avgRate ?? '—' }}<small>%</small></b></div></el-col>
         </el-row>
-        <el-table v-loading="loading" :data="rows" border stripe>
+        <el-table v-if="!isMobile" v-loading="loading" :data="rows" border stripe>
           <el-table-column label="姓名" min-width="100">
             <template #default="{ row }"><b>{{ row.userName }}</b> <span class="muted small">{{ row.employeeNo }}</span></template>
           </el-table-column>
@@ -152,10 +154,26 @@ onMounted(async () => {
             </template>
           </el-table-column>
         </el-table>
+        <div v-else v-loading="loading">
+          <div v-for="r in rows" :key="r.userId" class="m-card" @click="view(r.planId)">
+            <div class="m-top">
+              <b>{{ r.userName }} <span class="muted small">{{ r.deptName }}</span></b>
+              <span v-if="r.completionRate !== null" class="m-rate">{{ r.completionRate }}%</span>
+            </div>
+            <div class="m-tags">
+              <el-tag :type="planTag(r).type" size="small">计划{{ planTag(r).text }}</el-tag>
+              <el-tag v-if="r.planId" :type="r.reportStatus === 'SUBMITTED' ? 'success' : 'info'" size="small">完成情况{{ r.reportStatus === 'SUBMITTED' ? '已提交' : '未提交' }}</el-tag>
+              <el-tag v-if="r.planOverdue || r.reportOverdue" type="warning" size="small" effect="plain">逾期</el-tag>
+              <el-tag v-if="r.commented" type="info" size="small" effect="plain">已点评</el-tag>
+              <span v-if="r.planId" class="muted small">{{ r.itemCount }} 项 / {{ Number(r.planDays) }} 天</span>
+            </div>
+          </div>
+          <el-empty v-if="!loading && !rows.length" description="暂无人员" />
+        </div>
       </template>
 
       <template v-else>
-        <el-table v-loading="loading" :data="history" border stripe>
+        <el-table v-if="!isMobile" v-loading="loading" :data="history" border stripe>
           <el-table-column label="周次" min-width="200"><template #default="{ row }"><b>{{ row.week.label }}</b></template></el-table-column>
           <el-table-column label="计划" width="140">
             <template #default="{ row }">
@@ -178,6 +196,22 @@ onMounted(async () => {
           <el-table-column label="负责人点评" min-width="180"><template #default="{ row }"><span class="small">{{ row.comment || '—' }}</span></template></el-table-column>
           <el-table-column label="操作" width="80"><template #default="{ row }"><el-button link type="primary" @click="view(row.id)">查看</el-button></template></el-table-column>
         </el-table>
+        <div v-else v-loading="loading">
+          <div v-for="r in history" :key="r.id" class="m-card" @click="view(r.id)">
+            <div class="m-top">
+              <b>{{ r.week.label }}</b>
+              <span v-if="r.completionRate !== null" class="m-rate">{{ r.completionRate }}%</span>
+            </div>
+            <div class="m-tags">
+              <el-tag v-if="r.planStatus === 'RETURNED'" type="danger" size="small">被退回</el-tag>
+              <el-tag v-else :type="r.reportStatus === 'SUBMITTED' ? 'success' : 'info'" size="small">{{ r.reportStatus === 'SUBMITTED' ? '已完成填报' : '待填完成情况' }}</el-tag>
+              <el-tag v-if="r.planOverdue" type="warning" size="small" effect="plain">逾期</el-tag>
+              <span class="muted small">{{ r.itemCount }} 项 / {{ Number(r.planDays) }} 天</span>
+            </div>
+            <div v-if="r.comment" class="m-comment">点评：{{ r.comment }}</div>
+          </div>
+          <el-empty v-if="!loading && !history.length" description="暂无周报" />
+        </div>
         <div class="pager">
           <el-pagination v-model:current-page="hq.page" v-model:page-size="hq.size" :total="historyTotal" layout="total, prev, pager, next" background @current-change="loadHistory" />
         </div>
@@ -188,6 +222,43 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.m-card {
+  padding: 12px 2px;
+  border-bottom: 1px solid #eef2f7;
+  cursor: pointer;
+}
+.m-card:last-child {
+  border-bottom: none;
+}
+.m-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.m-top b {
+  font-size: 15px;
+}
+.m-rate {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--hy-primary);
+}
+.m-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+.m-comment {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--hy-text-2);
+  background: #f5f8ff;
+  border-radius: 8px;
+  padding: 6px 10px;
+}
 .tiles {
   margin-bottom: 14px;
 }

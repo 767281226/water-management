@@ -6,9 +6,11 @@ import { commonApi } from '@/api/common'
 import type { DeptNode, UserOption } from '@/api/system'
 import { useAuthStore } from '@/stores/auth'
 import ProjectFormDialog from './ProjectFormDialog.vue'
+import { useMobile } from '@/composables/useMobile'
 
 const router = useRouter()
 const auth = useAuthStore()
+const isMobile = useMobile()
 const rows = ref<ProjectVO[]>([])
 const total = ref(0)
 const loading = ref(false)
@@ -104,7 +106,7 @@ onMounted(async () => {
         <el-button icon="Refresh" @click="reset">重置</el-button>
       </div>
 
-      <el-table v-loading="loading" :data="rows" border stripe @row-click="(r: ProjectVO) => router.push(`/project/ledger/${r.id}`)" class="clickable">
+      <el-table v-if="!isMobile" v-loading="loading" :data="rows" border stripe @row-click="(r: ProjectVO) => router.push(`/project/ledger/${r.id}`)" class="clickable">
         <el-table-column label="项目名称 / 编号" min-width="240">
           <template #default="{ row }">
             <b class="pname">{{ row.name }}</b>
@@ -131,6 +133,22 @@ onMounted(async () => {
           </template>
         </el-table-column>
       </el-table>
+      <!-- 手机端：卡片列表 -->
+      <div v-else v-loading="loading" class="m-list">
+        <div v-for="p in rows" :key="p.id" class="m-card" @click="router.push(`/project/ledger/${p.id}`)">
+          <div class="m-top">
+            <b>{{ p.name }}</b>
+            <el-tag :type="PROJECT_STATUS[p.status].type || undefined" size="small">{{ p.statusLabel }}</el-tag>
+          </div>
+          <div class="m-sub">{{ p.code }} · {{ p.type }}<template v-if="p.archiveApplied"> · <span class="warn">待存档</span></template></div>
+          <div class="m-meta">
+            <span><el-icon><User /></el-icon>{{ p.leaderName }}</span>
+            <span><el-icon><OfficeBuilding /></el-icon>{{ p.deptName || '—' }}</span>
+            <span><el-icon><Calendar /></el-icon>{{ p.planEndDate }} 完成</span>
+          </div>
+        </div>
+        <el-empty v-if="!loading && !rows.length" description="暂无项目" />
+      </div>
       <div class="pager">
         <el-pagination
           v-model:current-page="query.page"
@@ -149,6 +167,45 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.m-card {
+  padding: 14px 2px;
+  border-bottom: 1px solid #eef2f7;
+  cursor: pointer;
+}
+.m-card:last-child {
+  border-bottom: none;
+}
+.m-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+.m-top b {
+  font-size: 15px;
+  line-height: 1.4;
+}
+.m-sub {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--hy-text-3);
+}
+.m-sub .warn {
+  color: #f59e0b;
+}
+.m-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--hy-text-2);
+}
+.m-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
 .clickable :deep(tbody tr) {
   cursor: pointer;
 }

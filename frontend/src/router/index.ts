@@ -31,6 +31,7 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/project/ProjectDetailView.vue'),
         meta: { title: '项目详情', perm: 'project:ledger', menu: '/project/ledger' }
       },
+      { path: 'me', component: () => import('@/views/me/MeView.vue'), meta: { title: '我的' } },
       { path: 'profile', component: () => import('@/views/profile/ProfileView.vue'), meta: { title: '个人中心' } },
       { path: '403', component: () => import('@/views/error/ForbiddenView.vue'), meta: { title: '无权访问' } }
     ]

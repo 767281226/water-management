@@ -5,8 +5,10 @@ import { commonApi } from '@/api/common'
 import type { DeptNode } from '@/api/system'
 import { useAuthStore } from '@/stores/auth'
 import BarChart from '@/components/BarChart.vue'
+import { useMobile } from '@/composables/useMobile'
 
 const auth = useAuthStore()
+const isMobile = useMobile()
 const thisYear = new Date().getFullYear()
 const year = ref(thisYear)
 const years = Array.from({ length: 5 }, (_, i) => thisYear - i)
@@ -111,7 +113,7 @@ onMounted(async () => {
 
       <div v-if="!isSelf" class="card block">
         <h4>个人年度汇总</h4>
-        <el-table :data="data.persons" border stripe>
+        <el-table v-if="!isMobile" :data="data.persons" border stripe>
           <el-table-column type="expand">
             <template #default="{ row }">
               <div class="months">
@@ -137,6 +139,16 @@ onMounted(async () => {
             <template #default="{ row }"><b>{{ row.avg ?? '—' }}</b></template>
           </el-table-column>
         </el-table>
+        <div v-else>
+          <div v-for="r in data.persons" :key="r.userId" class="m-person">
+            <span class="m-rank" :class="{ top: r.rank !== null && r.rank <= 3 }">{{ r.rank ?? '—' }}</span>
+            <div class="m-pi">
+              <b>{{ r.name }}</b><span class="muted small"> {{ r.deptName }}</span>
+              <div class="muted small">存档项目 {{ r.projects }} · 工时 {{ Number(r.hours) }} 天 · 填报率 {{ r.fillRate ?? '—' }}{{ r.fillRate !== null ? '%' : '' }}</div>
+            </div>
+            <b class="m-avg">{{ r.avg ?? '—' }}</b>
+          </div>
+        </div>
       </div>
 
       <div v-if="data.depts.length > 1" class="card block">
@@ -154,6 +166,41 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.m-person {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #eef2f7;
+}
+.m-person:last-child {
+  border-bottom: none;
+}
+.m-rank {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #eef2f7;
+  color: var(--hy-text-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  flex: none;
+}
+.m-rank.top {
+  background: var(--hy-gradient);
+  color: #fff;
+}
+.m-pi {
+  flex: 1;
+  min-width: 0;
+}
+.m-avg {
+  font-size: 18px;
+  color: var(--hy-primary);
+}
 .btns {
   display: flex;
   gap: 8px;

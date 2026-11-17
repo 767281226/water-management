@@ -11,3 +11,10 @@ export function checkPassword(pwd: string): string | null {
   if (/\s/.test(pwd)) return '密码不能包含空格'
   return null
 }
+
+/** 头像文字：两字名显示全名，三字名显示名，更长显示前两个字（避免单字"三"之类被误认为图标） */
+export function avatarText(name?: string | null): string {
+  const n = (name || '').trim()
+  if (n.length <= 2) return n
+  return n.length === 3 ? n.slice(1) : n.slice(0, 2)
+}

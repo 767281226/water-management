@@ -1,28 +1,22 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
 import { useAuthStore } from '@/stores/auth'
+import { useTodoStore } from '@/stores/todo'
+import { useMobile } from '@/composables/useMobile'
 import { MENUS, isGroup, type MenuGroup, type MenuItem } from '@/router/menu'
 import ChangePasswordDialog from '@/components/ChangePasswordDialog.vue'
+import { avatarText } from '@/utils/format'
 
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
+const todo = useTodoStore()
+const isMobile = useMobile()
 
-const isMobile = ref(window.innerWidth < 768)
-const collapsed = ref(isMobile.value)
+const collapsed = ref(false)
 const pwdVisible = ref(false)
-
-function onResize() {
-  const m = window.innerWidth < 768
-  if (m !== isMobile.value) {
-    isMobile.value = m
-    collapsed.value = m
-  }
-}
-onMounted(() => window.addEventListener('resize', onResize))
-onBeforeUnmount(() => window.removeEventListener('resize', onResize))
 
 /** 按权限过滤后的菜单 */
 const menus = computed(() =>
@@ -40,11 +34,32 @@ const asGroup = (m: MenuItem | MenuGroup) => m as MenuGroup
 const asItem = (m: MenuItem | MenuGroup) => m as MenuItem
 
 const today = new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'short' })
-const sideWidth = computed(() => (collapsed.value ? (isMobile.value ? '0px' : '72px') : '232px'))
 
-function onSelect() {
-  if (isMobile.value) collapsed.value = true
-}
+// ---------------- 手机端底部导航 ----------------
+interface Tab { path: string; title: string; icon: string; badge: number; match: string[] }
+const tabs = computed<Tab[]>(() => {
+  const list: Tab[] = [{ path: '/dashboard', title: '工作台', icon: 'HomeFilled', badge: 0, match: ['/dashboard'] }]
+  if (auth.hasPerm('weekly:plan') && !auth.user?.superAdmin) {
+    list.push({ path: '/weekly/plan', title: '填报', icon: 'EditPen', badge: todo.weekly, match: ['/weekly/plan', '/weekly/report'] })
+  }
+  if (auth.hasPerm('project:ledger')) {
+    list.push({ path: '/project/ledger', title: '项目', icon: 'Folder', badge: 0, match: ['/project/ledger'] })
+  }
+  if (auth.hasPerm('doc:search')) {
+    list.push({ path: '/doc/search', title: '资料', icon: 'Reading', badge: 0, match: ['/doc/search'] })
+  }
+  list.push({ path: '/me', title: '我的', icon: 'UserFilled', badge: todo.approvals, match: [] })
+  return list
+})
+const activeTab = computed(() => {
+  const hit = tabs.value.find((t) => t.match.includes(activePath.value))
+  // 其他页面（如审批、考评、系统管理）都从"我的"进入
+  return hit ? hit.path : '/me'
+})
+/** 详情页等非菜单页面显示返回按钮 */
+const backTo = computed(() => (route.meta.menu ? route.meta.menu : null))
+
+watch(() => route.path, () => todo.refresh(), { immediate: true })
 
 async function onCommand(cmd: string) {
   if (cmd === 'profile') router.push('/profile')
@@ -58,9 +73,8 @@ async function onCommand(cmd: string) {
 </script>
 
 <template>
-  <el-container class="layout">
-    <div v-if="isMobile && !collapsed" class="mask" @click="collapsed = true" />
-    <el-aside :width="sideWidth" class="aside" :class="{ mobile: isMobile, folded: collapsed }">
+  <el-container class="layout" :class="{ 'is-mobile': isMobile }">
+    <el-aside v-if="!isMobile" :width="collapsed ? '72px' : '232px'" class="aside" :class="{ folded: collapsed }">
       <div class="brand" @click="router.push('/')">
         <div class="logo">
           <svg viewBox="0 0 24 24"><path d="M12 2.5s7 7.4 7 12.4a7 7 0 0 1-14 0c0-5 7-12.4 7-12.4z" /></svg>
@@ -76,11 +90,10 @@ async function onCommand(cmd: string) {
           class="side-menu"
           :default-active="activePath"
           :default-openeds="openeds"
-          :collapse="collapsed && !isMobile"
+          :collapse="collapsed"
           :collapse-transition="false"
           popper-class="side-popper"
           router
-          @select="onSelect"
         >
           <template v-for="m in menus" :key="isGroup(m) ? m.title : asItem(m).path">
             <el-sub-menu v-if="isGroup(m)" :index="m.title">
@@ -111,7 +124,14 @@ async function onCommand(cmd: string) {
 
     <el-container class="right">
       <el-header class="header">
-        <button class="fold" :title="collapsed ? '展开菜单' : '收起菜单'" @click="collapsed = !collapsed">
+        <!-- 手机端：详情页返回 / 其他页面显示品牌 -->
+        <template v-if="isMobile">
+          <button v-if="backTo" class="fold" title="返回" @click="router.push(backTo)"><el-icon :size="18"><ArrowLeft /></el-icon></button>
+          <div v-else class="m-logo">
+            <svg viewBox="0 0 24 24"><path d="M12 2.5s7 7.4 7 12.4a7 7 0 0 1-14 0c0-5 7-12.4 7-12.4z" /></svg>
+          </div>
+        </template>
+        <button v-else class="fold" :title="collapsed ? '展开菜单' : '收起菜单'" @click="collapsed = !collapsed">
           <el-icon :size="18"><Fold v-if="!collapsed" /><Expand v-else /></el-icon>
         </button>
         <div class="crumb">
@@ -120,10 +140,10 @@ async function onCommand(cmd: string) {
         </div>
         <div class="spacer" />
         <span v-if="!isMobile" class="date"><el-icon><Calendar /></el-icon>{{ today }}</span>
-        <el-dropdown trigger="click" @command="onCommand">
+        <el-dropdown v-if="!isMobile" trigger="click" @command="onCommand">
           <div class="user-chip">
-            <div class="avatar">{{ auth.user?.realName.slice(-1) }}</div>
-            <div v-if="!isMobile" class="nm">
+            <div class="avatar">{{ avatarText(auth.user?.realName) }}</div>
+            <div class="nm">
               <span>{{ auth.user?.realName }}</span>
               <small>{{ auth.user?.deptName || '—' }} · {{ auth.user?.roles[0] }}</small>
             </div>
@@ -137,11 +157,23 @@ async function onCommand(cmd: string) {
             </el-dropdown-menu>
           </template>
         </el-dropdown>
+        <div v-else class="avatar sm" @click="router.push('/me')">{{ avatarText(auth.user?.realName) }}</div>
       </el-header>
       <el-main class="main">
         <router-view />
       </el-main>
     </el-container>
+
+    <!-- 手机端底部导航 -->
+    <nav v-if="isMobile" class="tabbar">
+      <a v-for="t in tabs" :key="t.path" :class="{ active: activeTab === t.path }" @click="router.push(t.path)">
+        <span class="ti">
+          <el-icon :size="22"><component :is="t.icon" /></el-icon>
+          <em v-if="t.badge" class="badge">{{ t.badge > 99 ? '99+' : t.badge }}</em>
+        </span>
+        <span>{{ t.title }}</span>
+      </a>
+    </nav>
 
     <ChangePasswordDialog
       :model-value="pwdVisible || auth.mustChangePwd"
@@ -167,20 +199,6 @@ async function onCommand(cmd: string) {
   box-shadow: 4px 0 24px rgba(11, 31, 75, 0.18);
   z-index: 10;
 }
-.aside.mobile {
-  position: fixed;
-  z-index: 30;
-  top: 0;
-  bottom: 0;
-  left: 0;
-}
-.mask {
-  position: fixed;
-  inset: 0;
-  background: rgba(11, 31, 75, 0.45);
-  backdrop-filter: blur(2px);
-  z-index: 29;
-}
 .brand {
   display: flex;
   align-items: center;
@@ -192,7 +210,7 @@ async function onCommand(cmd: string) {
   cursor: pointer;
   flex: none;
 }
-.aside.folded:not(.mobile) .brand {
+.aside.folded .brand {
   padding: 0 17px;
 }
 .logo {
@@ -206,7 +224,8 @@ async function onCommand(cmd: string) {
   flex: none;
   box-shadow: 0 6px 16px rgba(25, 182, 255, 0.35);
 }
-.logo svg {
+.logo svg,
+.m-logo svg {
   width: 22px;
   height: 22px;
   fill: #fff;
@@ -311,10 +330,25 @@ async function onCommand(cmd: string) {
   align-items: center;
   justify-content: center;
   transition: background 0.15s, color 0.15s;
+  flex: none;
 }
 .fold:hover {
   background: #e3ecff;
   color: var(--hy-primary);
+}
+.m-logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: var(--hy-gradient);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+.m-logo svg {
+  width: 18px;
+  height: 18px;
 }
 .crumb {
   display: flex;
@@ -334,6 +368,8 @@ async function onCommand(cmd: string) {
   margin: 0;
   font-weight: 700;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .spacer {
   flex: 1;
@@ -371,7 +407,15 @@ async function onCommand(cmd: string) {
   align-items: center;
   justify-content: center;
   font-weight: 600;
+  font-size: 13px;
   box-shadow: 0 4px 10px rgba(47, 107, 255, 0.3);
+  flex: none;
+}
+.avatar.sm {
+  width: 32px;
+  height: 32px;
+  font-size: 12px;
+  cursor: pointer;
 }
 .nm {
   line-height: 1.3;
@@ -396,10 +440,68 @@ async function onCommand(cmd: string) {
     var(--hy-bg);
 }
 
-@media (max-width: 768px) {
-  .header {
-    padding: 0 12px;
-    height: 54px;
-  }
+/* ---------------- 手机端 ---------------- */
+.is-mobile .header {
+  height: 52px;
+  padding: 0 14px;
+  padding-top: env(safe-area-inset-top);
+  height: calc(52px + env(safe-area-inset-top));
+  gap: 10px;
+}
+.is-mobile .main {
+  padding-bottom: calc(var(--tabbar-h) + 8px);
+}
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  height: var(--tabbar-h);
+  padding-bottom: env(safe-area-inset-bottom);
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--hy-line);
+  box-shadow: 0 -4px 16px rgba(23, 43, 99, 0.06);
+}
+.tabbar a {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-size: 11px;
+  color: #8d97a8;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.tabbar a.active {
+  color: var(--hy-primary);
+  font-weight: 600;
+}
+.tabbar .ti {
+  position: relative;
+  display: flex;
+}
+.tabbar a.active .ti {
+  filter: drop-shadow(0 3px 6px rgba(47, 107, 255, 0.35));
+}
+.badge {
+  position: absolute;
+  top: -5px;
+  left: 14px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: #f43f5e;
+  color: #fff;
+  font-size: 10px;
+  font-style: normal;
+  line-height: 16px;
+  text-align: center;
+  font-weight: 600;
 }
 </style>

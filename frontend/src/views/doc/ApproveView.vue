@@ -4,7 +4,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { docApi, LEVELS, REQUEST_STATUS, type DocVO, type RequestVO } from '@/api/doc'
 import { useAuthStore } from '@/stores/auth'
 import { fmtSize } from '@/utils/file'
-import { fmtTime } from '@/utils/format'
+import { avatarText, fmtTime } from '@/utils/format'
 import FileIcon from '@/components/FileIcon.vue'
 import RequestSteps from './RequestSteps.vue'
 import PreviewDialog from './PreviewDialog.vue'
@@ -88,7 +88,7 @@ onMounted(load)
           <div class="rh">
             <div class="who">
               <el-checkbox v-if="tab === 'todo'" :value="r.id" />
-              <div class="avatar">{{ r.applicantName?.slice(-1) }}</div>
+              <div class="avatar">{{ avatarText(r.applicantName) }}</div>
               <div><b>{{ r.applicantName }}</b><span class="muted small"> {{ r.applicantDept || '' }} · {{ fmtTime(r.createdAt) }}</span></div>
             </div>
             <div>
@@ -170,6 +170,7 @@ onMounted(load)
   align-items: center;
   justify-content: center;
   font-weight: 600;
+  font-size: 12px;
 }
 .purpose {
   margin: 12px 0;

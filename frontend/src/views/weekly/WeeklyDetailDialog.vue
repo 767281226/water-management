@@ -5,11 +5,13 @@ import { weeklyApi, type WeeklyPlan } from '@/api/weekly'
 import { useAuthStore } from '@/stores/auth'
 import { fmtTime } from '@/utils/format'
 import { fmtDays } from '@/utils/week'
+import { useMobile } from '@/composables/useMobile'
 
 const props = defineProps<{ modelValue: boolean; planId: number | null }>()
 const emit = defineEmits<{ 'update:modelValue': [boolean]; changed: [] }>()
 
 const auth = useAuthStore()
+const isMobile = useMobile()
 const plan = ref<WeeklyPlan | null>(null)
 const comment = ref('')
 const loading = ref(false)
@@ -70,7 +72,7 @@ async function returnPlan() {
           <span class="muted small">计划工时 {{ Number(plan.planDays) }} 天</span>
         </div>
         <el-alert v-if="plan.returnReason" type="error" :closable="false" :title="`退回原因：${plan.returnReason}`" style="margin-bottom: 10px" />
-        <el-table :data="plan.items" border size="small">
+        <el-table v-if="!isMobile" :data="plan.items" border size="small">
           <el-table-column label="项目" min-width="150">
             <template #default="{ row }">
               <el-tag v-if="row.extra" size="small" type="warning" effect="plain">计划外</el-tag>
@@ -93,6 +95,17 @@ async function returnPlan() {
             </template>
           </el-table-column>
         </el-table>
+        <div v-else class="m-items">
+          <div v-for="it in plan.items" :key="it.id" class="m-item">
+            <div class="m-top">
+              <span><el-tag v-if="it.extra" size="small" type="warning" effect="plain">计划外</el-tag> {{ it.projectName || '其他工作' }}</span>
+              <b v-if="it.completion !== null" :style="{ color: it.completion < 100 ? 'var(--el-color-warning)' : 'var(--el-color-success)' }">{{ it.completion }}%</b>
+            </div>
+            <div class="m-content">{{ it.content }}<span v-if="it.target" class="muted"> — {{ it.target }}</span></div>
+            <div class="muted small">计划 {{ fmtDays(it.planDays) }} · 实际 {{ fmtDays(it.actualDays) }}<template v-if="it.actualContent"> · {{ it.actualContent }}</template></div>
+            <div v-if="it.reason" class="small" style="color: var(--el-color-warning)">原因：{{ it.reason }}</div>
+          </div>
+        </div>
         <div v-if="canComment" class="comment">
           <div class="small muted">负责人点评（员工可以看到）</div>
           <el-input v-model="comment" type="textarea" :rows="2" maxlength="500" show-word-limit placeholder="选填" />
@@ -112,6 +125,24 @@ async function returnPlan() {
 </template>
 
 <style scoped>
+.m-item {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #f6f8fd;
+  margin-bottom: 8px;
+}
+.m-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: var(--hy-text-2);
+}
+.m-content {
+  margin: 4px 0;
+  font-size: 14px;
+  font-weight: 600;
+}
 .meta {
   display: flex;
   flex-wrap: wrap;

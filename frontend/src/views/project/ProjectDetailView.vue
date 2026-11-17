@@ -8,8 +8,10 @@ import type { DeptNode, UserOption } from '@/api/system'
 import { fmtTime } from '@/utils/format'
 import { fmtDays } from '@/utils/week'
 import ProjectFormDialog from './ProjectFormDialog.vue'
+import { useMobile } from '@/composables/useMobile'
 
 const route = useRoute()
+const isMobile = useMobile()
 const router = useRouter()
 const id = Number(route.params.id)
 const data = ref<ProjectDetail | null>(null)
@@ -93,7 +95,7 @@ onMounted(load)
     <template v-if="p && data">
       <div class="page-head">
         <div>
-          <el-link :underline="false" type="primary" @click="router.push('/project/ledger')">‹ 返回项目台账</el-link>
+          <el-link v-if="!isMobile" :underline="false" type="primary" @click="router.push('/project/ledger')">‹ 返回项目台账</el-link>
           <h3 style="margin-top: 6px">{{ p.name }}</h3>
           <p>
             {{ p.code }} ·
@@ -126,7 +128,7 @@ onMounted(load)
         title="项目已完成。成果提交、资料归档后，请申请存档；部门负责人确认后进入当月考评。" style="margin-bottom: 16px" />
 
       <div class="card" style="margin-bottom: 16px">
-        <el-descriptions :column="3" border class="desc">
+        <el-descriptions :column="isMobile ? 1 : 3" border class="desc">
           <el-descriptions-item label="项目类型">{{ p.type }}</el-descriptions-item>
           <el-descriptions-item label="委托单位">{{ p.client || '—' }}</el-descriptions-item>
           <el-descriptions-item label="合同金额">{{ p.contractAmount !== null ? `${p.contractAmount} 万元` : '—' }}</el-descriptions-item>

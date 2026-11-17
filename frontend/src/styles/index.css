@@ -17,6 +17,8 @@
   --hy-radius: 14px;
   --hy-shadow: 0 1px 2px rgba(23, 43, 99, 0.04), 0 6px 20px rgba(23, 43, 99, 0.06);
   --hy-shadow-hover: 0 4px 10px rgba(23, 43, 99, 0.06), 0 14px 32px rgba(23, 43, 99, 0.1);
+  /* 手机端底部导航高度（含 iPhone 底部安全区） */
+  --tabbar-h: calc(58px + env(safe-area-inset-bottom));
 
   /* Element Plus 主色 */
   --el-color-primary: #2f6bff;
@@ -244,11 +246,154 @@ body {
   color: #fff !important;
 }
 
+/* =====================================================================
+ * 手机端（≤ 768px）
+ * ===================================================================== */
 @media (max-width: 768px) {
+  body {
+    -webkit-tap-highlight-color: transparent;
+  }
   .page {
     padding: 14px 12px 20px;
   }
+  .page-head {
+    margin-bottom: 14px;
+    align-items: flex-start;
+  }
   .page-head h3 {
     font-size: 18px;
+  }
+  .page-head p {
+    margin-left: 15px;
+    font-size: 12px;
+  }
+  /* 页面头部的按钮组占满一行 */
+  .page-head > .el-button,
+  .page-head > .btns,
+  .page-head > div:last-child:not(:first-child) {
+    width: 100%;
+  }
+  .card {
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  /* 筛选栏：输入框、下拉框两列铺满 */
+  .toolbar {
+    gap: 8px;
+  }
+  .toolbar > .el-input,
+  .toolbar > .el-select,
+  .toolbar > .el-tree-select,
+  .toolbar > .el-date-editor {
+    width: calc(50% - 4px) !important;
+    flex: 1 1 calc(50% - 4px);
+  }
+  .toolbar > .el-input:first-child {
+    width: 100% !important;
+    flex-basis: 100%;
+  }
+  .toolbar > .spacer {
+    display: none;
+  }
+
+  /* 分页：只保留翻页 */
+  .pager {
+    justify-content: center;
+  }
+  .el-pagination .el-pagination__sizes,
+  .el-pagination .el-pagination__jump {
+    display: none !important;
+  }
+
+  /* 弹窗：底部弹出的面板 */
+  .el-overlay-dialog {
+    display: flex;
+    align-items: flex-end;
+  }
+  .el-dialog {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    border-radius: 18px 18px 0 0 !important;
+    max-height: 92vh;
+    display: flex;
+    flex-direction: column;
+    animation: sheet-up 0.22s ease-out;
+  }
+  .el-dialog__body {
+    overflow: auto;
+    flex: 1;
+    padding: 16px !important;
+  }
+  .el-dialog__footer {
+    padding: 10px 16px calc(12px + env(safe-area-inset-bottom)) !important;
+    border-top: 1px solid var(--hy-line);
+  }
+  .el-dialog__footer .el-button {
+    min-width: 88px;
+  }
+  .el-message-box {
+    width: calc(100vw - 40px) !important;
+  }
+
+  /* 表格：横向滚动 */
+  .el-table {
+    font-size: 13px;
+  }
+
+  /* 表单：标签在上 */
+  .el-dialog .el-form:not(.el-form--inline) .el-form-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .el-dialog .el-form .el-form-item__label {
+    justify-content: flex-start !important;
+    width: auto !important;
+    height: auto;
+    line-height: 22px;
+    padding-bottom: 4px;
+  }
+  .el-dialog .el-form .el-form-item__content {
+    margin-left: 0 !important;
+  }
+
+  /* 底部固定操作栏：贴在底部导航上方，盖住滚动内容 */
+  .foot {
+    position: sticky !important;
+    bottom: var(--tabbar-h) !important;
+    z-index: 6;
+    margin: 12px -14px -14px !important;
+    padding: 10px 14px !important;
+    background: rgba(255, 255, 255, 0.97) !important;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 -6px 14px rgba(23, 43, 99, 0.08);
+    border-top: 1px solid var(--hy-line) !important;
+    border-radius: 0 0 14px 14px;
+  }
+  .foot > .muted {
+    display: none;
+  }
+  .foot > .el-button,
+  .foot > div:last-child .el-button {
+    flex: 1;
+    height: 42px;
+    font-size: 15px;
+  }
+  .foot > div:last-child {
+    display: flex;
+    flex: 1;
+    gap: 8px;
+  }
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(40px);
+    opacity: 0.4;
+  }
+  to {
+    transform: none;
+    opacity: 1;
   }
 }
